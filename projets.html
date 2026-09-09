@@ -22,12 +22,30 @@ footer{background:var(--navy);color:white;padding:13px 5vw;display:flex;justify-
 footer a{color:white;text-decoration:none;font-weight:700}
 @media(max-width:900px){.grid{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.grid{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}nav a{margin:0 18px 0 0}}
+
+nav .nav-contact{
+  color:white;text-decoration:none;font-weight:700;margin-left:20px;
+  border:0;background:transparent;font:inherit;cursor:pointer;padding:0
+}
+nav .nav-contact:hover{text-decoration:underline}
+.modal{position:fixed;inset:0;background:rgba(3,25,47,.64);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.modal.open{display:flex}
+.dialog{width:min(560px,96vw);background:#fff;border-radius:18px;box-shadow:0 25px 80px rgba(0,0,0,.35);padding:24px;color:#17324d;position:relative}
+.dialog h2{margin:0 0 5px;color:#9e1021;font-size:1.7rem}
+.dialog p{margin:0 0 18px;color:#617180;font-size:.94rem}
+.close{position:absolute;right:15px;top:12px;border:0;background:transparent;font-size:28px;cursor:pointer;color:#526474}
+form{display:grid;gap:12px}
+label{font-weight:700;font-size:.9rem}
+input,textarea{width:100%;padding:11px 12px;border:1px solid #bdcad4;border-radius:9px;font:inherit}
+textarea{min-height:125px;resize:vertical}
+.send{border:0;border-radius:10px;padding:12px 16px;background:#9e1021;color:#fff;font-weight:800;font-size:1rem;cursor:pointer}
+
 </style>
 </head>
 <body>
 <header>
  <div class="brand"><div class="mark">✣</div><div><h1>Lou Camin</h1><div class="sub">Club de programmation · Occitanie — Côte d’Azur</div></div></div>
- <nav><a href="index.html">Accueil</a><a href="mailto:rudy.themines@gmail.com?subject=Contact%20-%20Lou%20Camin">Contact</a></nav>
+ <nav><a href="index.html">Accueil</a><button class="nav-contact" id="openContact" type="button">Contact</button></nav>
 </header>
 <main>
  <section class="intro">
@@ -50,5 +68,33 @@ footer a{color:white;text-decoration:none;font-weight:700}
  </section>
 </main>
 <footer><span><strong>Lou Camin</strong> · Projet indépendant</span><a href="index.html">← Retour à l’accueil</a></footer>
+
+<div class="modal" id="contactModal" role="dialog" aria-modal="true" aria-labelledby="contactTitle">
+  <div class="dialog">
+    <button class="close" id="closeContact" aria-label="Fermer">×</button>
+    <h2 id="contactTitle">Contact</h2>
+    <p>Une question, une idée ou un besoin autour de la formation ou de la prévention des risques ?</p>
+    <form id="contactForm">
+      <div><label for="name">Nom</label><input id="name" name="name" required></div>
+      <div><label for="email">Adresse e-mail</label><input id="email" name="email" type="email" required></div>
+      <div><label for="subject">Objet</label><input id="subject" name="subject" required></div>
+      <div><label for="message">Message</label><textarea id="message" name="message" required></textarea></div>
+      <button class="send" type="submit">Envoyer le message</button>
+    </form>
+  </div>
+</div>
+
+<script>
+const modal=document.getElementById('contactModal');
+document.getElementById('openContact').addEventListener('click',()=>modal.classList.add('open'));
+document.getElementById('closeContact').addEventListener('click',()=>modal.classList.remove('open'));
+modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('open')});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')modal.classList.remove('open')});
+document.getElementById('contactForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  alert("Le formulaire est prêt. Il reste à raccorder l’envoi direct à rudy.themines@gmail.com.");
+});
+</script>
+
 </body>
 </html>
