@@ -60,12 +60,16 @@ textarea{min-height:125px;resize:vertical}
     <button class="close" id="closeContact" aria-label="Fermer">×</button>
     <h2 id="contactTitle">Contact</h2>
     <p>Une question, une idée ou un besoin autour de la formation ou de la prévention des risques ?</p>
-    <form id="contactForm">
+    <form id="contactForm" method="post" target="loucaminContactTarget">
       <div><label for="name">Nom</label><input id="name" name="name" required></div>
       <div><label for="email">Adresse e-mail</label><input id="email" name="email" type="email" required></div>
       <div><label for="subject">Objet</label><input id="subject" name="subject" required></div>
       <div><label for="message">Message</label><textarea id="message" name="message" required></textarea></div>
+      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"
+             style="position:absolute;left:-9999px;opacity:0">
       <button class="send" type="submit">Envoyer le message</button>
+      <div id="contactStatus" role="status" aria-live="polite"
+           style="min-height:1.2em;font-size:.9rem;font-weight:700"></div>
     </form>
   </div>
 </div>
@@ -76,10 +80,32 @@ document.getElementById('openContact').addEventListener('click',()=>modal.classL
 document.getElementById('closeContact').addEventListener('click',()=>modal.classList.remove('open'));
 modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('open')});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')modal.classList.remove('open')});
-document.getElementById('contactForm').addEventListener('submit',e=>{
-  e.preventDefault();
-  alert("Le formulaire est prêt. Il reste à raccorder l’envoi direct à rudy.themines@gmail.com sans ouvrir le logiciel de messagerie.");
+
+
+const LOUCAMIN_CONTACT_ENDPOINT = "https://script.google.com/macros/s/AKfycbzG2EekmezeN-8meBHJzNGRFMpb1Hpkzh6YTSKccvPk8e2WNH8tcLLy9Bwuq8i6rBH6yw/exec";
+const contactForm = document.getElementById('contactForm');
+const contactStatus = document.getElementById('contactStatus');
+
+contactForm.addEventListener('submit', function(e) {
+  if (!LOUCAMIN_CONTACT_ENDPOINT.startsWith('https://script.google.com/')) {
+    e.preventDefault();
+    contactStatus.style.color = '#9e1021';
+    contactStatus.textContent = "Le formulaire n’est pas encore raccordé.";
+    return;
+  }
+
+  contactForm.action = LOUCAMIN_CONTACT_ENDPOINT;
+  contactStatus.style.color = '#425466';
+  contactStatus.textContent = "Envoi en cours…";
+
+  window.setTimeout(function() {
+    contactStatus.style.color = '#21613c';
+    contactStatus.textContent = "Votre message a bien été envoyé.";
+    contactForm.reset();
+  }, 1400);
 });
+
 </script>
+<iframe name="loucaminContactTarget" id="loucaminContactTarget" title="Envoi du formulaire" style="display:none"></iframe>
 </body>
 </html>
