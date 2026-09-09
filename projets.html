@@ -7,10 +7,10 @@
 <style>
 :root{--navy:#06325b;--red:#a80f1e;--gold:#f7b500;--ink:#102a43;--paper:#f7fafc}
 *{box-sizing:border-box} body{margin:0;background:linear-gradient(#eaf7ff,#f7fafc);color:var(--ink);font-family:Arial,sans-serif}
-header{background:var(--navy);color:white;padding:18px 5vw;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.brand{display:flex;align-items:center;gap:13px}.mark{width:46px;height:46px;border-radius:50%;background:var(--red);display:grid;place-items:center;color:#ffc400;font-size:26px}
-h1{margin:0;font-size:1.55rem}.sub{opacity:.82;font-size:.9rem;margin-top:3px}
-nav a{color:white;text-decoration:none;font-weight:700;margin-left:20px}
+header{background:#79c6f2;color:white;padding:10px 5vw;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:4px solid var(--navy)}
+.brand{display:flex;align-items:center}.brand img{display:block;height:78px;width:auto;border-radius:8px}
+
+nav a{color:var(--navy);text-decoration:none;font-weight:800;margin-left:20px}
 main{width:min(1180px,92vw);margin:30px auto 45px}
 .intro{text-align:center;margin:0 auto 28px;max-width:780px}.intro h2{font-size:2.1rem;margin:0 0 9px;color:var(--red)}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
@@ -24,7 +24,7 @@ footer a{color:white;text-decoration:none;font-weight:700}
 @media(max-width:620px){.grid{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}nav a{margin:0 18px 0 0}}
 
 nav .nav-contact{
-  color:white;text-decoration:none;font-weight:700;margin-left:20px;
+  color:var(--navy);text-decoration:none;font-weight:700;margin-left:20px;
   border:0;background:transparent;font:inherit;cursor:pointer;padding:0
 }
 nav .nav-contact:hover{text-decoration:underline}
@@ -44,7 +44,7 @@ textarea{min-height:125px;resize:vertical}
 </head>
 <body>
 <header>
- <div class="brand"><div class="mark">✣</div><div><h1>Lou Camin</h1><div class="sub">Club de programmation · Occitanie — Côte d’Azur</div></div></div>
+ <div class="brand"><img src="logo-lou-camin-header.jpg" alt="Lou Camin — Club de programmation · Occitanie — Côte d’Azur"></div>
  <nav><a href="index.html">Accueil</a><button class="nav-contact" id="openContact" type="button">Contact</button></nav>
 </header>
 <main>
