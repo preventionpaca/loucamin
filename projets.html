@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Projets — Lou Camin</title>
+<style>
+:root{--navy:#06325b;--red:#a80f1e;--gold:#f7b500;--ink:#102a43;--paper:#f7fafc}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(#eaf7ff,#f7fafc);color:var(--ink);font-family:Arial,sans-serif}
+header{background:var(--navy);color:white;padding:18px 5vw;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:13px}.mark{width:46px;height:46px;border-radius:50%;background:var(--red);display:grid;place-items:center;color:#ffc400;font-size:26px}
+h1{margin:0;font-size:1.55rem}.sub{opacity:.82;font-size:.9rem;margin-top:3px}
+nav a{color:white;text-decoration:none;font-weight:700;margin-left:20px}
+main{width:min(1180px,92vw);margin:30px auto 45px}
+.intro{text-align:center;margin:0 auto 28px;max-width:780px}.intro h2{font-size:2.1rem;margin:0 0 9px;color:var(--red)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.card{background:white;border-radius:18px;overflow:hidden;box-shadow:0 12px 30px #15344d22;border:1px solid #dce6ed}
+.shot{aspect-ratio:16/9;background:#dceaf3;overflow:hidden}.shot img{width:100%;height:100%;object-fit:cover;display:block}
+.content{padding:18px 19px 21px}.content h3{margin:0 0 8px;font-size:1.18rem;color:var(--navy)}
+.content p{margin:0;line-height:1.5;color:#506474;font-size:.94rem}
+footer{background:var(--navy);color:white;padding:13px 5vw;display:flex;justify-content:space-between;align-items:center;font-size:.88rem}
+footer a{color:white;text-decoration:none;font-weight:700}
+@media(max-width:900px){.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.grid{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}nav a{margin:0 18px 0 0}}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand"><div class="mark">✣</div><div><h1>Lou Camin</h1><div class="sub">Club de programmation · Occitanie — Côte d’Azur</div></div></div>
+ <nav><a href="index.html">Accueil</a><a href="mailto:rudy.themines@gmail.com?subject=Contact%20-%20Lou%20Camin">Contact</a></nav>
+</header>
+<main>
+ <section class="intro">
+   <h2>Projets</h2>
+   <p>Quelques réalisations développées à partir de besoins concrets rencontrés dans la formation professionnelle, l’organisation des parcours et la prévention des risques.</p>
+ </section>
+ <section class="grid">
+   <article class="card">
+     <div class="shot"><img src="assets/projet-prevention-paca.png" alt="Aperçu du portail Prévention PACA"></div>
+     <div class="content"><h3>Guide pour la prévention des risques</h3><p>Portail et outils destinés à accompagner les établissements dans la prévention des risques professionnels et les démarches liées aux travaux réglementés.</p></div>
+   </article>
+   <article class="card">
+     <div class="shot"><img src="assets/projet-suivi-appels-anonymise.jpg" alt="Aperçu anonymisé de la plateforme de suivi des appels"></div>
+     <div class="content"><h3>Plateforme de suivi d’appels téléphoniques</h3><p>Centralisation, attribution et suivi des demandes reçues, avec historique des actions et organisation du traitement par l’équipe.</p></div>
+   </article>
+   <article class="card">
+     <div class="shot"><img src="assets/projet-mini-stages-anonymise.jpg" alt="Aperçu anonymisé de l'outil de gestion des mini-stages"></div>
+     <div class="content"><h3>Gestion de mini-stages collège–lycée</h3><p>Organisation des inscriptions, conventions, capacités d’accueil, affectations et suivi des mini-stages entre collèges et lycée.</p></div>
+   </article>
+ </section>
+</main>
+<footer><span><strong>Lou Camin</strong> · Projet indépendant</span><a href="index.html">← Retour à l’accueil</a></footer>
+</body>
+</html>
