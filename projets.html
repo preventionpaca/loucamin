@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Projets — Lou Còdi</title>
+<style>
+:root{--navy:#06325b;--red:#a80f1e;--gold:#f7b500;--ink:#102a43;--paper:#f7fafc}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(#eaf7ff,#f7fafc);color:var(--ink);font-family:Arial,sans-serif}
+header{background:#79c6f2;color:white;padding:10px 5vw;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:4px solid var(--navy)}
+.brand{display:flex;align-items:center}.brand img{display:block;height:78px;width:auto;border-radius:8px}
+
+nav a{color:var(--navy);text-decoration:none;font-weight:800;margin-left:20px}
+main{width:min(1180px,92vw);margin:30px auto 45px}
+.intro{text-align:center;margin:0 auto 28px;max-width:780px}.intro h2{font-size:2.1rem;margin:0 0 9px;color:var(--red)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.card{background:white;border-radius:18px;overflow:hidden;box-shadow:0 12px 30px #15344d22;border:1px solid #dce6ed}
+.shot{aspect-ratio:16/9;background:#dceaf3;overflow:hidden}.shot img{width:100%;height:100%;object-fit:cover;display:block}
+.content{padding:18px 19px 21px}.content h3{margin:0 0 8px;font-size:1.18rem;color:var(--navy)}
+.content p{margin:0;line-height:1.5;color:#506474;font-size:.94rem}
+footer{background:var(--navy);color:white;padding:13px 5vw;display:flex;justify-content:space-between;align-items:center;font-size:.88rem}
+footer a{color:white;text-decoration:none;font-weight:700}
+@media(max-width:900px){.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.grid{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}nav a{margin:0 18px 0 0}}
+
+nav .nav-contact{
+  color:var(--navy);text-decoration:none;font-weight:700;margin-left:20px;
+  border:0;background:transparent;font:inherit;cursor:pointer;padding:0
+}
+nav .nav-contact:hover{text-decoration:underline}
+.modal{position:fixed;inset:0;background:rgba(3,25,47,.64);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.modal.open{display:flex}
+.dialog{width:min(560px,96vw);background:#fff;border-radius:18px;box-shadow:0 25px 80px rgba(0,0,0,.35);padding:24px;color:#17324d;position:relative}
+.dialog h2{margin:0 0 5px;color:#9e1021;font-size:1.7rem}
+.dialog p{margin:0 0 18px;color:#617180;font-size:.94rem}
+.close{position:absolute;right:15px;top:12px;border:0;background:transparent;font-size:28px;cursor:pointer;color:#526474}
+form{display:grid;gap:12px}
+label{font-weight:700;font-size:.9rem}
+input,textarea{width:100%;padding:11px 12px;border:1px solid #bdcad4;border-radius:9px;font:inherit}
+textarea{min-height:125px;resize:vertical}
+.send{border:0;border-radius:10px;padding:12px 16px;background:#9e1021;color:#fff;font-weight:800;font-size:1rem;cursor:pointer}
+
+</style>
+</head>
+<body>
+<header>
+ <div class="brand"><img src="logo-lou-codi-header.jpg" alt="Lou Còdi — Club de programmation · Occitanie — Côte d’Azur"></div>
+ <nav><a href="index.html">Accueil</a><button class="nav-contact" id="openContact" type="button">Contact</button></nav>
+</header>
+<main>
+ <section class="intro">
+   <h2>Projets</h2>
+   <p>Quelques réalisations développées à partir de besoins concrets rencontrés dans la formation professionnelle, l’organisation des parcours et la prévention des risques.</p>
+ </section>
+ <section class="grid">
+   <article class="card">
+     <div class="shot"><img src="assets/projet-prevention-paca.png" alt="Aperçu du portail Prévention PACA"></div>
+     <div class="content"><h3>Guide pour la prévention des risques</h3><p>Portail et outils destinés à accompagner les établissements dans la prévention des risques professionnels et les démarches liées aux travaux réglementés.</p></div>
+   </article>
+   <article class="card">
+     <div class="shot"><img src="assets/projet-suivi-appels-anonymise.jpg" alt="Aperçu anonymisé de la plateforme de suivi des appels"></div>
+     <div class="content"><h3>Plateforme de suivi d’appels téléphoniques</h3><p>Centralisation, attribution et suivi des demandes reçues, avec historique des actions et organisation du traitement par l’équipe.</p></div>
+   </article>
+   <article class="card">
+     <div class="shot"><img src="assets/projet-mini-stages-anonymise.jpg" alt="Aperçu anonymisé de l'outil de gestion des mini-stages"></div>
+     <div class="content"><h3>Gestion de mini-stages collège–lycée</h3><p>Organisation des inscriptions, conventions, capacités d’accueil, affectations et suivi des mini-stages entre collèges et lycée.</p></div>
+   </article>
+ </section>
+</main>
+<footer><span><strong>Lou Còdi</strong> · Projet indépendant</span><a href="index.html">← Retour à l’accueil</a></footer>
+
+<div class="modal" id="contactModal" role="dialog" aria-modal="true" aria-labelledby="contactTitle">
+  <div class="dialog">
+    <button class="close" id="closeContact" aria-label="Fermer">×</button>
+    <h2 id="contactTitle">Contact</h2>
+    <p>Une question, une idée ou un besoin autour de la formation ou de la prévention des risques ?</p>
+    <form id="contactForm" method="post" target="loucaminContactTarget">
+      <div><label for="name">Nom</label><input id="name" name="name" required></div>
+      <div><label for="email">Adresse e-mail</label><input id="email" name="email" type="email" required></div>
+      <div><label for="subject">Objet</label><input id="subject" name="subject" required></div>
+      <div><label for="message">Message</label><textarea id="message" name="message" required></textarea></div>
+      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"
+             style="position:absolute;left:-9999px;opacity:0">
+      <button class="send" type="submit">Envoyer le message</button>
+      <div id="contactStatus" role="status" aria-live="polite"
+           style="min-height:1.2em;font-size:.9rem;font-weight:700"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+const modal=document.getElementById('contactModal');
+document.getElementById('openContact').addEventListener('click',()=>modal.classList.add('open'));
+document.getElementById('closeContact').addEventListener('click',()=>modal.classList.remove('open'));
+modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('open')});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')modal.classList.remove('open')});
+
+
+const LOUCAMIN_CONTACT_ENDPOINT = "https://script.google.com/macros/s/AKfycbzG2EekmezeN-8meBHJzNGRFMpb1Hpkzh6YTSKccvPk8e2WNH8tcLLy9Bwuq8i6rBH6yw/exec";
+const contactForm = document.getElementById('contactForm');
+const contactStatus = document.getElementById('contactStatus');
+
+contactForm.addEventListener('submit', function(e) {
+  if (!LOUCAMIN_CONTACT_ENDPOINT.startsWith('https://script.google.com/')) {
+    e.preventDefault();
+    contactStatus.style.color = '#9e1021';
+    contactStatus.textContent = "Le formulaire n’est pas encore raccordé.";
+    return;
+  }
+
+  contactForm.action = LOUCAMIN_CONTACT_ENDPOINT;
+  contactStatus.style.color = '#425466';
+  contactStatus.textContent = "Envoi en cours…";
+
+  window.setTimeout(function() {
+    contactStatus.style.color = '#21613c';
+    contactStatus.textContent = "Votre message a bien été envoyé.";
+    contactForm.reset();
+  }, 1400);
+});
+
+</script>
+
+<iframe name="loucaminContactTarget" id="loucaminContactTarget" title="Envoi du formulaire" style="display:none"></iframe>
+</body>
+</html>
