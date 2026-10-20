@@ -277,6 +277,15 @@ textarea{
         <textarea id="message" name="message" required></textarea>
       </div>
 
+      <div>
+        <label for="captchaAnswer">Anti-spam : combien font <span id="captchaQuestion"></span> ?</label>
+        <input id="captchaAnswer" name="captcha_answer" type="number" inputmode="numeric" required>
+      </div>
+
+      <input id="captchaA" name="captcha_a" type="hidden">
+      <input id="captchaB" name="captcha_b" type="hidden">
+      <input id="formStartedAt" name="form_started_at" type="hidden">
+
       <input
         type="text"
         name="website"
@@ -339,8 +348,31 @@ const contactForm =
 const contactStatus =
   document.getElementById('contactStatus');
 
+function refreshContactCaptcha() {
+  const a = Math.floor(Math.random() * 8) + 2;
+  const b = Math.floor(Math.random() * 8) + 2;
+  document.getElementById('captchaA').value = a;
+  document.getElementById('captchaB').value = b;
+  document.getElementById('captchaQuestion').textContent = a + ' + ' + b;
+  document.getElementById('captchaAnswer').value = '';
+  document.getElementById('formStartedAt').value = Date.now();
+}
+
+refreshContactCaptcha();
+document.getElementById('openContact').addEventListener('click', refreshContactCaptcha);
+
 
 contactForm.addEventListener('submit', function(e) {
+
+  const expected = Number(document.getElementById('captchaA').value) + Number(document.getElementById('captchaB').value);
+  const answer = Number(document.getElementById('captchaAnswer').value);
+  if (answer !== expected) {
+    e.preventDefault();
+    contactStatus.style.color = '#9e1021';
+    contactStatus.textContent = "Réponse anti-spam incorrecte. Essayez de nouveau.";
+    refreshContactCaptcha();
+    return;
+  }
 
   if (
     !LOUCAMIN_CONTACT_ENDPOINT.startsWith(
@@ -374,6 +406,7 @@ contactForm.addEventListener('submit', function(e) {
       "Votre message a bien été envoyé.";
 
     contactForm.reset();
+    refreshContactCaptcha();
 
   }, 1400);
 });

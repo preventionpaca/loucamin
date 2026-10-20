@@ -95,6 +95,10 @@ textarea{min-height:125px;resize:vertical}
       <div><label for="email">Adresse e-mail</label><input id="email" name="email" type="email" required></div>
       <div><label for="subject">Objet</label><input id="subject" name="subject" required></div>
       <div><label for="message">Message</label><textarea id="message" name="message" required></textarea></div>
+      <div><label for="captchaAnswer">Anti-spam : combien font <span id="captchaQuestion"></span> ?</label><input id="captchaAnswer" name="captcha_answer" type="number" inputmode="numeric" required></div>
+      <input id="captchaA" name="captcha_a" type="hidden">
+      <input id="captchaB" name="captcha_b" type="hidden">
+      <input id="formStartedAt" name="form_started_at" type="hidden">
       <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"
              style="position:absolute;left:-9999px;opacity:0">
       <button class="send" type="submit">Envoyer le message</button>
@@ -116,7 +120,29 @@ const LOUCAMIN_CONTACT_ENDPOINT = "https://script.google.com/macros/s/AKfycbzG2E
 const contactForm = document.getElementById('contactForm');
 const contactStatus = document.getElementById('contactStatus');
 
+function refreshContactCaptcha() {
+  const a = Math.floor(Math.random() * 8) + 2;
+  const b = Math.floor(Math.random() * 8) + 2;
+  document.getElementById('captchaA').value = a;
+  document.getElementById('captchaB').value = b;
+  document.getElementById('captchaQuestion').textContent = a + ' + ' + b;
+  document.getElementById('captchaAnswer').value = '';
+  document.getElementById('formStartedAt').value = Date.now();
+}
+
+refreshContactCaptcha();
+document.getElementById('openContact').addEventListener('click', refreshContactCaptcha);
+
 contactForm.addEventListener('submit', function(e) {
+  const expected = Number(document.getElementById('captchaA').value) + Number(document.getElementById('captchaB').value);
+  const answer = Number(document.getElementById('captchaAnswer').value);
+  if (answer !== expected) {
+    e.preventDefault();
+    contactStatus.style.color = '#9e1021';
+    contactStatus.textContent = "Réponse anti-spam incorrecte. Essayez de nouveau.";
+    refreshContactCaptcha();
+    return;
+  }
   if (!LOUCAMIN_CONTACT_ENDPOINT.startsWith('https://script.google.com/')) {
     e.preventDefault();
     contactStatus.style.color = '#9e1021';
@@ -132,6 +158,7 @@ contactForm.addEventListener('submit', function(e) {
     contactStatus.style.color = '#21613c';
     contactStatus.textContent = "Votre message a bien été envoyé.";
     contactForm.reset();
+    refreshContactCaptcha();
   }, 1400);
 });
 
