@@ -46,6 +46,10 @@ function LC_emailActif_() {
   return String(Session.getActiveUser().getEmail() || '').trim().toLowerCase();
 }
 
+function LC_bool_(value) {
+  return value === true || String(value || '').trim().toLowerCase() === 'true';
+}
+
 function LC_contexteAdministrateur_() {
   const email = LC_emailActif_();
   if (!email) throw new Error('Identité Google indisponible. Reconnectez-vous avec un compte autorisé.');
@@ -53,7 +57,7 @@ function LC_contexteAdministrateur_() {
   const result = LC_grist_('get', '/tables/' + LC_ADMIN_TABLE + '/records?filter=' + filter);
   const matches = (result.records || []).filter(function(record) {
     const fields = record.fields || {};
-    return String(fields.Email || '').trim().toLowerCase() === email && fields.Actif === true;
+    return String(fields.Email || '').trim().toLowerCase() === email && LC_bool_(fields.Actif);
   });
   if (matches.length !== 1) throw new Error('Ce compte Google n’est pas autorisé à administrer le site.');
   const fields = matches[0].fields;
@@ -61,7 +65,7 @@ function LC_contexteAdministrateur_() {
     email: email,
     nom: String(fields.Nom_affichage || email),
     role: String(fields.Role || 'EDITEUR'),
-    peutModifier: fields.Peut_modifier_produits === true || String(fields.Role || '').toUpperCase() === 'ADMIN'
+    peutModifier: LC_bool_(fields.Peut_modifier_produits) || String(fields.Role || '').toUpperCase() === 'ADMIN'
   };
 }
 
@@ -89,7 +93,7 @@ function LC_vueProduit_(record) {
     confidentialiteUrl: String(fields.Confidentialite_URL || ''),
     conditionsUrl: String(fields.Conditions_URL || ''),
     ordre: Number(fields.Ordre || 0),
-    visible: fields.Visible === true,
+    visible: LC_bool_(fields.Visible),
     modifieLe: fields.Modifie_le || ''
   };
 }
