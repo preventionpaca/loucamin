@@ -1,5 +1,6 @@
 const LC_ADMIN_VERSION = '1.0.0-alpha.1';
-const LC_ADMIN_TABLE = 'Administrateurs';
+// Dans Grist, la table affichée « Administrateurs » conserve l'identifiant technique Table1.
+const LC_ADMIN_TABLE = 'Table1';
 const LC_PRODUCTS_TABLE = 'Produits';
 
 function doGet() {
