@@ -1,4 +1,4 @@
-const LC_ADMIN_VERSION = '1.0.0-alpha.3';
+const LC_ADMIN_VERSION = '1.0.0-alpha.4';
 // Dans Grist, la table affichée « Administrateurs » conserve l'identifiant technique Table1.
 const LC_ADMIN_TABLE = 'Table1';
 const LC_PRODUCTS_TABLE = 'Produits';
@@ -104,7 +104,9 @@ function LC_contexteAdministrateur_() {
   const result = LC_grist_('get', '/tables/' + LC_ADMIN_TABLE + '/records');
   const matches = (result.records || []).filter(function(record) {
     const fields = record.fields || {};
-    const recordEmail = String(fields.Email || fields.A || '').trim().toLowerCase();
+    const namedEmail = String(fields.Email || '').trim();
+    const legacyEmail = String(fields.A || '').trim();
+    const recordEmail = (namedEmail || legacyEmail).toLowerCase();
     return recordEmail === email && LC_bool_(fields.Actif);
   });
   if (matches.length !== 1) {
@@ -114,9 +116,10 @@ function LC_contexteAdministrateur_() {
     );
   }
   const fields = matches[0].fields;
+  const displayName = String(fields.Nom_affichage || '').trim() || String(fields.B || '').trim();
   return {
     email: email,
-    nom: String(fields.Nom_affichage || fields.B || email),
+    nom: displayName || email,
     role: String(fields.Role || 'EDITEUR'),
     peutModifier: LC_bool_(fields.Peut_modifier_produits) || String(fields.Role || '').toUpperCase() === 'ADMIN'
   };
