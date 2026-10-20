@@ -18,6 +18,8 @@ main{width:min(1180px,92vw);margin:30px auto 45px}
 .shot{aspect-ratio:16/9;background:#dceaf3;overflow:hidden}.shot img{width:100%;height:100%;object-fit:cover;display:block}
 .content{padding:18px 19px 21px}.content h3{margin:0 0 8px;font-size:1.18rem;color:var(--navy)}
 .content p{margin:0;line-height:1.5;color:#506474;font-size:.94rem}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.actions a{border:1px solid #b7c8d5;border-radius:9px;padding:8px 10px;color:var(--navy);font-size:.82rem;font-weight:800;text-decoration:none}.actions a.primary{background:var(--navy);border-color:var(--navy);color:white}.actions a:hover{border-color:var(--red)}
+.shot.logo-shot{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#06325b,#1674a8)}.shot.logo-shot img{width:42%;height:78%;object-fit:contain;filter:drop-shadow(0 8px 18px #0005)}
 footer{background:var(--navy);color:white;padding:13px 5vw;display:flex;justify-content:space-between;align-items:center;font-size:.88rem}
 footer a{color:white;text-decoration:none;font-weight:700}
 @media(max-width:900px){.grid{grid-template-columns:1fr 1fr}}
@@ -64,6 +66,19 @@ textarea{min-height:125px;resize:vertical}
    <article class="card">
      <div class="shot"><img src="assets/projet-mini-stages-anonymise.jpg" alt="Aperçu anonymisé de l'outil de gestion des mini-stages"></div>
      <div class="content"><h3>Gestion de mini-stages collège–lycée</h3><p>Organisation des inscriptions, conventions, capacités d’accueil, affectations et suivi des mini-stages entre collèges et lycée.</p></div>
+   </article>
+   <article class="card">
+     <div class="shot logo-shot"><img src="assets/lou-codi-workshop.png" alt="Logo de Lou Còdi Workshop"></div>
+     <div class="content">
+       <h3>Lou Còdi Workshop</h3>
+       <p>Suite bureautique locale pour créer, convertir, organiser et personnaliser des documents PDF et bureautiques, avec des outils de production pensés pour les besoins concrets.</p>
+       <div class="actions">
+         <a class="primary" href="https://github.com/preventionpaca/pdf-converter-lou-codi">En savoir plus</a>
+         <a href="https://github.com/preventionpaca/pdf-converter-lou-codi/releases">Téléchargement</a>
+         <a href="confidentialite-lou-codi-workshop.html">Confidentialité</a>
+         <a href="conditions-utilisation-lou-codi-workshop.html">Conditions d’utilisation</a>
+       </div>
+     </div>
    </article>
  </section>
 </main>
