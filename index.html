@@ -5,350 +5,560 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Lou Còdi — Club de programmation. Applications et utilitaires pour la formation et la prévention des risques professionnels.">
 <title>Lou Còdi — Club de programmation</title>
-
 <style>
+:root{
+  color-scheme:dark;
+  --navy:#061d4d;
+  --ink:#082963;
+  --gold:#ffd600;
+  --card:rgba(255,255,255,.91);
+  --line:rgba(255,255,255,.45)
+}
+
 *{box-sizing:border-box}
 
 html,body{
   margin:0;
-  width:100%;
-  height:100%;
-  overflow:hidden;
-  background:#06325b;
-  font-family:Arial,sans-serif
+  min-width:320px;
+  min-height:100%;
+  font-family:Arial,Helvetica,sans-serif
 }
 
-.page{
+body{
+  color:#fff;
+  background:#05245b
+}
+
+button,a,input,textarea{font:inherit}
+
+.hero{
   position:relative;
-  width:100vw;
-  height:100vh;
+  min-height:100svh;
+  overflow:hidden;
+  isolation:isolate;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  background:#0d67a6
+}
+
+.hero::before,
+.hero::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-2;
+  background-position:center;
+  background-size:cover;
+  transition:opacity .45s ease,filter .45s ease,transform 8s ease
+}
+
+.hero::before{
+  background-image:url("assets/accueil-grand-large-jour.jpg")
+}
+
+.hero::after{
+  z-index:-1;
+  pointer-events:none
+}
+
+body[data-ambiance="jour"] .hero::before{
+  filter:saturate(1.08) contrast(1.03);
+  background-position:36% center
+}
+
+body[data-ambiance="jour"] .hero::after{
+  background:
+    linear-gradient(180deg,rgba(0,45,98,.18) 0%,rgba(5,39,81,.08) 36%,rgba(2,23,56,.58) 100%),
+    radial-gradient(ellipse at 50% 29%,rgba(255,255,255,.38),transparent 45%)
+}
+
+body[data-ambiance="nuit"] .hero::before{
+  background-image:url("assets/accueil-pontons-nuit.jpg");
+  background-position:center 55%;
+  filter:saturate(1.2) contrast(1.08) brightness(.83)
+}
+
+body[data-ambiance="nuit"] .hero::after{
+  background:
+    linear-gradient(180deg,rgba(1,15,54,.34) 0%,rgba(0,22,58,.13) 48%,rgba(1,13,42,.78) 100%),
+    radial-gradient(ellipse at 50% 30%,rgba(20,105,175,.14),transparent 48%)
+}
+
+body[data-ambiance="pins"] .hero::before{
+  background-image:url("assets/accueil-baie-pins.jpg");
+  background-position:center 43%;
+  filter:saturate(1.08) contrast(1.04) brightness(.91)
+}
+
+body[data-ambiance="pins"] .hero::after{
+  background:
+    linear-gradient(180deg,rgba(2,36,74,.14) 0%,rgba(1,31,65,.08) 44%,rgba(2,22,52,.67) 100%),
+    radial-gradient(ellipse at 52% 28%,rgba(255,255,255,.2),transparent 48%)
+}
+
+body[data-ambiance="rivage"] .hero::before{
+  background-image:url("assets/accueil-rivage-azur.jpg");
+  background-position:center 57%;
+  filter:saturate(1.12) contrast(1.04) brightness(.93)
+}
+
+body[data-ambiance="rivage"] .hero::after{
+  background:
+    linear-gradient(180deg,rgba(0,39,83,.12) 0%,rgba(1,39,74,.04) 42%,rgba(2,26,57,.65) 100%),
+    radial-gradient(ellipse at 50% 32%,rgba(255,255,255,.18),transparent 52%)
+}
+
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  padding:14px clamp(16px,3vw,48px);
+  z-index:5
+}
+
+.proposal-label{
+  margin-right:auto;
+  padding:8px 12px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:rgba(2,22,58,.46);
+  backdrop-filter:blur(12px);
+  font-size:.78rem;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase
+}
+
+.theme-button{
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:9px 14px;
+  color:#fff;
+  background:rgba(2,22,58,.46);
+  backdrop-filter:blur(12px);
+  cursor:pointer;
+  font-size:.85rem;
+  font-weight:800
+}
+
+.theme-button[aria-pressed="true"]{
+  color:#061d4d;
+  background:#fff;
+  border-color:#fff
+}
+
+.content{
+  width:min(1180px,calc(100% - 34px));
+  height:100%;
+  margin:0 auto;
+  padding:4px 0 24px;
+  display:grid;
+  grid-template-rows:auto auto 1fr;
+  justify-items:center;
+  gap:clamp(12px,2vh,22px)
+}
+
+.brand{
+  width:min(610px,82vw);
+  min-height:126px;
   display:flex;
   align-items:center;
   justify-content:center;
-  background:#06325b
+  gap:18px;
+  padding:13px 28px;
+  filter:drop-shadow(0 7px 10px rgba(0,19,50,.42))
 }
 
-.visual{
-  position:relative;
-  width:min(100vw,calc(100vh * 1672 / 941));
-  height:min(100vh,calc(100vw * 941 / 1672))
+.brand img{
+  display:block;
+  width:104px;
+  height:104px;
+  object-fit:contain;
+  filter:drop-shadow(0 3px 5px rgba(0,22,58,.28))
 }
 
-.visual img{
+.brand-name{
+  color:#d20707;
+  font-family:"Brush Script MT","Segoe Script",cursive;
+  font-size:clamp(3.1rem,5vw,4.8rem);
+  font-style:italic;
+  font-weight:700;
+  line-height:.85;
+  white-space:nowrap;
+  text-shadow:0 2px 0 rgba(255,255,255,.55)
+}
+
+.brand-name::after{
+  content:"";
   display:block;
   width:100%;
-  height:100%;
-  object-fit:contain;
-  user-select:none;
-  -webkit-user-drag:none
+  height:5px;
+  margin-top:8px;
+  border-radius:99px;
+  background:#ffe100;
+  transform:skewX(-28deg) rotate(-2deg)
 }
 
-/*
-  Les boutons "Projets" et "Contact" sont déjà dessinés
-  dans l'image accueil-lou-camin.png.
-  Les contrôles HTML restent présents et cliquables,
-  mais sont rendus invisibles pour éviter le double affichage.
-*/
-.footer-actions{
+.brand-meta{
+  margin-top:10px;
+  color:#061d4d;
+  text-align:center;
+  font-weight:800;
+  line-height:1.2;
+  text-shadow:0 1px 3px rgba(255,255,255,.92),0 0 10px rgba(255,255,255,.72)
+}
+
+.brand-region{
+  display:block;
+  margin-top:3px;
+  font-size:.72rem;
+  font-weight:600;
+  letter-spacing:.26em
+}
+
+.intro{
+  max-width:960px;
+  text-align:center;
+  text-wrap:balance;
+  text-shadow:0 2px 15px rgba(0,20,55,.55)
+}
+
+.intro h1{
+  margin:0;
+  font-size:clamp(1.45rem,2.4vw,2.35rem);
+  line-height:1.15
+}
+
+.intro p{
+  max-width:850px;
+  margin:13px auto 0;
+  font-size:clamp(.95rem,1.35vw,1.25rem);
+  line-height:1.4;
+  font-weight:500
+}
+
+.cards{
+  width:100%;
+  align-self:end;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px
+}
+
+body[data-ambiance="jour"] .intro{transform:translateY(clamp(120px,15vh,160px))}
+body[data-ambiance="jour"] .cards{transform:translateY(8px)}
+body[data-ambiance="nuit"] .intro{transform:translateY(-4px)}
+body[data-ambiance="nuit"] .cards{transform:translateY(8px)}
+body[data-ambiance="pins"] .intro{transform:translateY(clamp(20px,4vh,45px))}
+body[data-ambiance="pins"] .cards{transform:translateY(8px)}
+body[data-ambiance="rivage"] .intro{transform:translateY(clamp(45px,7vh,75px))}
+body[data-ambiance="rivage"] .cards{transform:translateY(8px)}
+
+.photo-credit{
   position:absolute;
-  right:2.8%;
-  bottom:1.8%;
-  height:7.2%;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  z-index:3;
-  opacity:0
+  right:18px;
+  bottom:79px;
+  z-index:4;
+  padding:5px 8px;
+  border-radius:7px;
+  color:rgba(255,255,255,.94);
+  background:rgba(1,17,48,.52);
+  font-size:.69rem;
+  font-weight:700;
+  letter-spacing:.02em;
+  text-shadow:0 1px 3px rgba(0,0,0,.6);
+  backdrop-filter:blur(6px)
 }
 
-.footer-link{
+.card{
+  min-height:190px;
+  display:grid;
+  grid-template-columns:78px 1fr;
+  align-content:start;
+  gap:8px 16px;
+  padding:20px 22px;
+  color:var(--ink);
+  background:var(--card);
+  border:1px solid rgba(255,255,255,.8);
+  border-radius:24px;
+  box-shadow:0 20px 45px rgba(0,23,61,.22);
+  backdrop-filter:blur(12px)
+}
+
+.card-icon{
+  grid-row:1 / 3;
+  width:76px;
+  height:76px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  font-size:2.45rem;
+  font-weight:900
+}
+
+.card-icon svg{
+  width:43px;
+  height:43px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2.2;
+  stroke-linecap:round;
+  stroke-linejoin:round
+}
+
+.card:nth-child(1) .card-icon{color:#087a41;background:#c9f0dc}
+.card:nth-child(2) .card-icon{color:#ff4b00;background:#fff0ae}
+.card:nth-child(3) .card-icon{color:#5621e8;background:#dce7ff}
+
+.card h2{
+  margin:8px 0 0;
+  font-size:clamp(1.05rem,1.35vw,1.35rem);
+  line-height:1.15
+}
+
+.card:nth-child(1) h2{color:#087a41}
+.card:nth-child(2) h2{color:#ef2700}
+.card:nth-child(3) h2{color:#5621e8}
+
+.card p{
+  grid-column:1 / -1;
+  margin:9px 0 0;
+  font-size:clamp(.91rem,1.1vw,1.08rem);
+  line-height:1.4
+}
+
+.footer{
+  min-height:72px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  gap:24px;
+  padding:12px clamp(18px,4vw,72px);
+  background:rgba(2,21,60,.9);
+  border-top:1px solid rgba(255,255,255,.19);
+  backdrop-filter:blur(15px)
+}
+
+.footer-copy{
+  font-size:.9rem;
+  line-height:1.35
+}
+
+.signature{
+  color:#fff;
+  font-family:Georgia,serif;
+  font-size:1.35rem;
+  font-style:italic;
+  white-space:nowrap
+}
+
+.signature::after{
+  content:"";
+  display:block;
+  width:100%;
+  height:4px;
+  margin-top:4px;
+  border-radius:99px;
+  background:var(--gold);
+  transform:skewX(-25deg) rotate(-4deg)
+}
+
+.actions{
   display:flex;
+  justify-content:flex-end;
+  gap:10px
+}
+
+.action{
+  display:inline-flex;
   align-items:center;
   gap:8px;
-  color:#fff;
-  text-decoration:none;
-  font-weight:700;
-  font-size:clamp(12px,1.05vw,18px);
-  padding:9px 13px;
+  border:1px solid rgba(255,255,255,.42);
   border-radius:10px;
-  border:1px solid rgba(255,255,255,.22);
-  background:rgba(3,38,74,.28);
-  backdrop-filter:blur(2px);
+  padding:10px 14px;
+  color:#fff;
+  background:rgba(255,255,255,.04);
+  text-decoration:none;
+  font-weight:800;
   cursor:pointer
 }
 
-.footer-link:hover{
-  background:rgba(255,255,255,.12)
-}
-
-.footer-link svg{
-  width:20px;
-  height:20px;
-  stroke:currentColor;
-  fill:none;
-  stroke-width:2
-}
+.action:hover,.action:focus-visible{background:rgba(255,255,255,.15)}
 
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(3,25,47,.64);
+  z-index:20;
   display:none;
-  align-items:center;
-  justify-content:center;
+  place-items:center;
   padding:20px;
-  z-index:20
+  color:#17324d;
+  background:rgba(3,25,47,.72)
 }
 
-.modal.open{
-  display:flex
-}
+.modal.open{display:grid}
 
 .dialog{
+  position:relative;
   width:min(560px,96vw);
-  background:#fff;
-  border-radius:18px;
-  box-shadow:0 25px 80px rgba(0,0,0,.35);
+  max-height:92svh;
+  overflow:auto;
   padding:24px;
-  color:#17324d;
-  position:relative
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 25px 80px rgba(0,0,0,.4)
 }
 
-.dialog h2{
-  margin:0 0 5px;
-  color:#9e1021;
-  font-size:1.7rem
+.dialog h2{margin:0 0 5px;color:#9e1021;font-size:1.7rem}
+.dialog p{margin:0 0 18px;color:#617180;font-size:.94rem}
+.close{position:absolute;right:15px;top:12px;border:0;background:transparent;font-size:28px;cursor:pointer;color:#526474}
+form{display:grid;gap:12px}
+label{display:block;margin-bottom:4px;font-weight:700;font-size:.9rem}
+input,textarea{width:100%;padding:11px 12px;border:1px solid #bdcad4;border-radius:9px;color:#17324d;background:#fff}
+textarea{min-height:125px;resize:vertical}
+.send{border:0;border-radius:10px;padding:12px 16px;background:#9e1021;color:#fff;font-weight:800;cursor:pointer}
+
+@media(max-width:850px){
+  .hero{overflow:auto}
+  .content{height:auto}
+  .cards{grid-template-columns:1fr}
+  .card{min-height:0}
+  body[data-ambiance] .intro,
+  body[data-ambiance] .cards{transform:none}
+  .footer{grid-template-columns:1fr;text-align:center}
+  .actions{justify-content:center}
+  .signature{justify-self:center}
 }
 
-.dialog p{
-  margin:0 0 18px;
-  color:#617180;
-  font-size:.94rem
-}
-
-.close{
-  position:absolute;
-  right:15px;
-  top:12px;
-  border:0;
-  background:transparent;
-  font-size:28px;
-  cursor:pointer;
-  color:#526474
-}
-
-form{
-  display:grid;
-  gap:12px
-}
-
-label{
-  font-weight:700;
-  font-size:.9rem
-}
-
-input,textarea{
-  width:100%;
-  padding:11px 12px;
-  border:1px solid #bdcad4;
-  border-radius:9px;
-  font:inherit
-}
-
-textarea{
-  min-height:125px;
-  resize:vertical
-}
-
-.send{
-  border:0;
-  border-radius:10px;
-  padding:12px 16px;
-  background:#9e1021;
-  color:#fff;
-  font-weight:800;
-  font-size:1rem;
-  cursor:pointer
-}
-
-.note{
-  font-size:.78rem!important;
-  margin-top:3px!important;
-  color:#71808d!important
-}
-
-@media(max-width:650px){
-  .footer-actions{
-    right:1.5%;
-    gap:4px
-  }
-
-  .footer-link{
-    padding:7px 8px
-  }
-
-  .footer-link svg{
-    width:16px
-  }
+@media(max-width:580px){
+  .topbar{align-items:stretch;flex-wrap:wrap}
+  .proposal-label{width:100%;margin:0;text-align:center}
+  .theme-button{flex:1}
+  .brand{width:min(430px,92vw)}
+  .brand{gap:10px;padding:10px 14px;min-height:96px}
+  .brand img{width:76px;height:76px}
+  .brand-name{font-size:clamp(2.5rem,12vw,3.5rem)}
+  .brand-meta{font-size:.82rem}
+  .brand-region{font-size:.58rem}
+  .content{width:min(100% - 22px,1180px)}
+  .card{grid-template-columns:58px 1fr;padding:17px}
+  .card-icon{width:56px;height:56px;font-size:1.8rem}
+  .footer-copy{display:none}
 }
 </style>
 </head>
+<body data-ambiance="jour">
 
-<body>
+<main class="hero">
+  <header class="topbar" aria-label="Comparaison des propositions">
+    <span class="proposal-label">Choisir le fond</span>
+    <button class="theme-button" type="button" data-theme="jour" aria-pressed="true">1 · Grand large</button>
+    <button class="theme-button" type="button" data-theme="nuit" aria-pressed="false">2 · Nuit électrique</button>
+    <button class="theme-button" type="button" data-theme="pins" aria-pressed="false">3 · Baie des Pins</button>
+    <button class="theme-button" type="button" data-theme="rivage" aria-pressed="false">4 · Rivage azur</button>
+  </header>
 
-<main class="page">
-  <div class="visual">
-
-    <img
-      src="assets/accueil-lou-camin.png"
-      alt="Lou Còdi — Club de programmation, Occitanie Côte d’Azur"
-    >
-
-    <div class="footer-actions" aria-label="Navigation">
-
-      <a class="footer-link" href="projets.html">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M3 7h7l2 2h9v10H3z"/>
-          <path d="M3 7V5h7l2 2"/>
-        </svg>
-        Projets
-      </a>
-
-      <button class="footer-link" id="openContact" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="3" y="5" width="18" height="14" rx="2"/>
-          <path d="m4 7 8 6 8-6"/>
-        </svg>
-        Contact
-      </button>
-
+  <section class="content">
+    <div class="brand" aria-label="Lou Còdi — Club de programmation, Occitanie — Côte d’Azur">
+      <img src="assets/logo-rond-lou-codi.png" alt="">
+      <div>
+        <div class="brand-name">Lou Còdi</div>
+        <div class="brand-meta">Club de programmation<span class="brand-region">OCCITANIE · CÔTE D’AZUR</span></div>
+      </div>
     </div>
-  </div>
+
+    <div class="intro">
+      <h1>Création d’applications et d’utilitaires<br>pour la formation et la prévention des risques professionnels</h1>
+      <p>Lou Còdi imagine et développe des outils numériques utiles et concrets pour faciliter la formation des jeunes et la prévention des risques dans les établissements scolaires comme dans les entreprises.</p>
+    </div>
+
+    <div class="cards">
+      <article class="card">
+        <div class="card-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="14" cy="12" r="5"/><path d="M6 35v-7c0-5 3-8 8-8s8 3 8 8v7M14 20v15M8 27h12"/><rect x="25" y="8" width="18" height="18" rx="2"/><path d="M29 22l5-6 5 3M27 32h14M34 26v6"/></svg></div>
+        <h2>Formation<br>professionnelle</h2>
+        <p>Outils de suivi, d’organisation, d’évaluation et d’accompagnement des parcours.</p>
+      </article>
+
+      <article class="card">
+        <div class="card-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 4l15 6v11c0 10-6 18-15 23C15 39 9 31 9 21V10z"/><path d="M24 10v27M15 15l9-4 9 4v7c0 6-3 11-9 15-6-4-9-9-9-15z"/></svg></div>
+        <h2>Prévention<br>des risques</h2>
+        <p>Solutions pratiques pour mieux informer, structurer les démarches et sécuriser les activités.</p>
+      </article>
+
+      <article class="card">
+        <div class="card-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="8"/><path d="M24 4v6M24 38v6M4 24h6M38 24h6M10 10l4 4M34 34l4 4M38 10l-4 4M14 34l-4 4"/><circle cx="24" cy="24" r="16"/></svg></div>
+        <h2>Utilité avant tout</h2>
+        <p>Des projets évolutifs, à partir de besoins rencontrés sur le terrain.</p>
+      </article>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-copy"><strong>Lou Còdi</strong> · Club de programmation<br>Projet indépendant</div>
+    <div class="signature">Au service du terrain</div>
+    <nav class="actions" aria-label="Navigation principale">
+      <a class="action" href="projets.html">▣ Projets</a>
+      <button class="action" id="openContact" type="button">✉ Contact</button>
+    </nav>
+  </footer>
+
+  <div class="photo-credit">Photographie © Loucodi.fr — Tous droits réservés</div>
 </main>
 
-
-<div
-  class="modal"
-  id="contactModal"
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="contactTitle"
->
-
+<div class="modal" id="contactModal" role="dialog" aria-modal="true" aria-labelledby="contactTitle">
   <div class="dialog">
-
-    <button
-      class="close"
-      id="closeContact"
-      aria-label="Fermer"
-      type="button"
-    >×</button>
-
+    <button class="close" id="closeContact" aria-label="Fermer" type="button">×</button>
     <h2 id="contactTitle">Contact</h2>
-
-    <p>
-      Une question, une idée ou un besoin autour de la formation
-      ou de la prévention des risques ?
-    </p>
-
-    <form
-      id="contactForm"
-      method="post"
-      target="loucaminContactTarget"
-    >
-
-      <div>
-        <label for="name">Nom</label>
-        <input id="name" name="name" required>
-      </div>
-
-      <div>
-        <label for="email">Adresse e-mail</label>
-        <input id="email" name="email" type="email" required>
-      </div>
-
-      <div>
-        <label for="subject">Objet</label>
-        <input id="subject" name="subject" required>
-      </div>
-
-      <div>
-        <label for="message">Message</label>
-        <textarea id="message" name="message" required></textarea>
-      </div>
-
-      <div>
-        <label for="captchaAnswer">Anti-spam : combien font <span id="captchaQuestion"></span> ?</label>
-        <input id="captchaAnswer" name="captcha_answer" type="number" inputmode="numeric" required>
-      </div>
-
+    <p>Une question, une idée ou un besoin autour de la formation ou de la prévention des risques ?</p>
+    <form id="contactForm" method="post" target="loucaminContactTarget">
+      <div><label for="name">Nom</label><input id="name" name="name" required></div>
+      <div><label for="email">Adresse e-mail</label><input id="email" name="email" type="email" required></div>
+      <div><label for="subject">Objet</label><input id="subject" name="subject" required></div>
+      <div><label for="message">Message</label><textarea id="message" name="message" required></textarea></div>
+      <div><label for="captchaAnswer">Anti-spam : combien font <span id="captchaQuestion"></span> ?</label><input id="captchaAnswer" name="captcha_answer" type="number" inputmode="numeric" required></div>
       <input id="captchaA" name="captcha_a" type="hidden">
       <input id="captchaB" name="captcha_b" type="hidden">
       <input id="formStartedAt" name="form_started_at" type="hidden">
-
-      <input
-        type="text"
-        name="website"
-        tabindex="-1"
-        autocomplete="off"
-        aria-hidden="true"
-        style="position:absolute;left:-9999px;opacity:0"
-      >
-
-      <button class="send" type="submit">
-        Envoyer le message
-      </button>
-
-      <div
-        id="contactStatus"
-        role="status"
-        aria-live="polite"
-        style="min-height:1.2em;font-size:.9rem;font-weight:700"
-      ></div>
-
+      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0">
+      <button class="send" type="submit">Envoyer le message</button>
+      <div id="contactStatus" role="status" aria-live="polite" style="min-height:1.2em;font-size:.9rem;font-weight:700"></div>
     </form>
   </div>
 </div>
 
+<iframe name="loucaminContactTarget" title="Envoi du formulaire" style="display:none"></iframe>
 
 <script>
+const CONTACT_ENDPOINT = "https://script.google.com/macros/s/AKfycbzG2EekmezeN-8meBHJzNGRFMpb1Hpkzh6YTSKccvPk8e2WNH8tcLLy9Bwuq8i6rBH6yw/exec";
+const body = document.body;
+const themeButtons = document.querySelectorAll('[data-theme]');
+const allowedThemes = ['jour', 'nuit', 'pins', 'rivage'];
+const requestedTheme = new URLSearchParams(location.search).get('ambiance');
+const savedTheme = localStorage.getItem('loucodi-accueil-fond');
+const initialTheme = allowedThemes.includes(requestedTheme)
+  ? requestedTheme
+  : (allowedThemes.includes(savedTheme) ? savedTheme : 'jour');
+
+function setTheme(theme, updateUrl) {
+  body.dataset.ambiance = theme;
+  localStorage.setItem('loucodi-accueil-fond', theme);
+  themeButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.theme === theme)));
+  if (updateUrl) {
+    const url = new URL(location.href);
+    url.searchParams.set('ambiance', theme);
+    history.replaceState({}, '', url);
+  }
+}
+
+setTheme(initialTheme, false);
+themeButtons.forEach(button => button.addEventListener('click', () => setTheme(button.dataset.theme, true)));
+
 const modal = document.getElementById('contactModal');
+const form = document.getElementById('contactForm');
+const status = document.getElementById('contactStatus');
 
-document
-  .getElementById('openContact')
-  .addEventListener('click', () => {
-    modal.classList.add('open');
-  });
-
-document
-  .getElementById('closeContact')
-  .addEventListener('click', () => {
-    modal.classList.remove('open');
-  });
-
-modal.addEventListener('click', e => {
-  if (e.target === modal) {
-    modal.classList.remove('open');
-  }
-});
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    modal.classList.remove('open');
-  }
-});
-
-
-const LOUCAMIN_CONTACT_ENDPOINT =
-  "https://script.google.com/macros/s/AKfycbzG2EekmezeN-8meBHJzNGRFMpb1Hpkzh6YTSKccvPk8e2WNH8tcLLy9Bwuq8i6rBH6yw/exec";
-
-const contactForm =
-  document.getElementById('contactForm');
-
-const contactStatus =
-  document.getElementById('contactStatus');
-
-function refreshContactCaptcha() {
+function refreshCaptcha() {
   const a = Math.floor(Math.random() * 8) + 2;
   const b = Math.floor(Math.random() * 8) + 2;
   document.getElementById('captchaA').value = a;
@@ -358,67 +568,31 @@ function refreshContactCaptcha() {
   document.getElementById('formStartedAt').value = Date.now();
 }
 
-refreshContactCaptcha();
-document.getElementById('openContact').addEventListener('click', refreshContactCaptcha);
+document.getElementById('openContact').addEventListener('click', () => { refreshCaptcha(); modal.classList.add('open'); });
+document.getElementById('closeContact').addEventListener('click', () => modal.classList.remove('open'));
+modal.addEventListener('click', event => { if (event.target === modal) modal.classList.remove('open'); });
+document.addEventListener('keydown', event => { if (event.key === 'Escape') modal.classList.remove('open'); });
+refreshCaptcha();
 
-
-contactForm.addEventListener('submit', function(e) {
-
+form.addEventListener('submit', event => {
   const expected = Number(document.getElementById('captchaA').value) + Number(document.getElementById('captchaB').value);
-  const answer = Number(document.getElementById('captchaAnswer').value);
-  if (answer !== expected) {
-    e.preventDefault();
-    contactStatus.style.color = '#9e1021';
-    contactStatus.textContent = "Réponse anti-spam incorrecte. Essayez de nouveau.";
-    refreshContactCaptcha();
+  if (Number(document.getElementById('captchaAnswer').value) !== expected) {
+    event.preventDefault();
+    status.style.color = '#9e1021';
+    status.textContent = 'Réponse anti-spam incorrecte. Essayez de nouveau.';
+    refreshCaptcha();
     return;
   }
-
-  if (
-    !LOUCAMIN_CONTACT_ENDPOINT.startsWith(
-      'https://script.google.com/'
-    )
-  ) {
-    e.preventDefault();
-
-    contactStatus.style.color = '#9e1021';
-    contactStatus.textContent =
-      "Le formulaire n’est pas encore raccordé.";
-
-    return;
-  }
-
-  contactForm.action =
-    LOUCAMIN_CONTACT_ENDPOINT;
-
-  contactStatus.style.color =
-    '#425466';
-
-  contactStatus.textContent =
-    "Envoi en cours…";
-
-  window.setTimeout(function() {
-
-    contactStatus.style.color =
-      '#21613c';
-
-    contactStatus.textContent =
-      "Votre message a bien été envoyé.";
-
-    contactForm.reset();
-    refreshContactCaptcha();
-
+  form.action = CONTACT_ENDPOINT;
+  status.style.color = '#425466';
+  status.textContent = 'Envoi en cours…';
+  setTimeout(() => {
+    status.style.color = '#21613c';
+    status.textContent = 'Votre message a bien été envoyé.';
+    form.reset();
+    refreshCaptcha();
   }, 1400);
 });
 </script>
-
-
-<iframe
-  name="loucaminContactTarget"
-  id="loucaminContactTarget"
-  title="Envoi du formulaire"
-  style="display:none"
-></iframe>
-
 </body>
 </html>
