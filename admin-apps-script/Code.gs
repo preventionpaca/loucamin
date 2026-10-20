@@ -1,4 +1,4 @@
-const LC_ADMIN_VERSION = '1.0.0-alpha.2';
+const LC_ADMIN_VERSION = '1.0.0-alpha.3';
 // Dans Grist, la table affichée « Administrateurs » conserve l'identifiant technique Table1.
 const LC_ADMIN_TABLE = 'Table1';
 const LC_PRODUCTS_TABLE = 'Produits';
@@ -107,7 +107,12 @@ function LC_contexteAdministrateur_() {
     const recordEmail = String(fields.Email || fields.A || '').trim().toLowerCase();
     return recordEmail === email && LC_bool_(fields.Actif);
   });
-  if (matches.length !== 1) throw new Error('Ce compte Google n’est pas autorisé à administrer le site.');
+  if (matches.length !== 1) {
+    throw new Error(
+      'Le compte Google détecté (' + email + ') n’est pas autorisé à administrer le site. ' +
+      'Utilisez « Changer de compte Google » ou ajoutez exactement cette adresse dans Grist.'
+    );
+  }
   const fields = matches[0].fields;
   return {
     email: email,

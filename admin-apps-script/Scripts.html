@@ -2,7 +2,10 @@
 const state={products:[],canEdit:false};
 const byId=id=>document.getElementById(id);
 function status(message){byId('status').textContent=message||'';}
-function fail(error){status(error&&error.message?error.message:String(error||'Erreur inconnue.'));}
+function fail(error){
+  byId('identity').textContent='Connexion Google refusée';
+  status(error&&error.message?error.message:String(error||'Erreur inconnue.'));
+}
 function render(){
   const root=byId('products');root.replaceChildren();
   state.products.forEach(product=>{
