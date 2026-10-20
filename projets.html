@@ -5,16 +5,20 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Projets — Lou Còdi</title>
 <style>
-:root{--navy:#06325b;--red:#a80f1e;--gold:#f7b500;--ink:#102a43;--paper:#f7fafc}
-*{box-sizing:border-box} body{margin:0;background:linear-gradient(#eaf7ff,#f7fafc);color:var(--ink);font-family:Arial,sans-serif}
-header{background:#79c6f2;color:white;padding:10px 5vw;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:4px solid var(--navy)}
-.brand{display:flex;align-items:center}.brand img{display:block;height:78px;width:auto;border-radius:8px}
+:root{--navy:#05265c;--red:#c30b17;--gold:#ffd600;--cyan:#04b9d9;--mint:#20d4a8;--ink:#102a43;--paper:#f7fafc}
+*{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 15% 0%,#c9f6ff 0,#eaf9ff 30%,#f8fbfd 72%);color:var(--ink);font-family:Arial,sans-serif}
+header{background:linear-gradient(115deg,#05265c 0%,#087fb8 50%,#12bea8 100%);color:white;padding:9px 5vw;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:4px solid var(--gold);box-shadow:0 10px 30px #04214a2e}
+.brand{display:flex;align-items:center;gap:12px;filter:drop-shadow(0 4px 7px #001b3c88)}
+.brand img{display:block;width:68px;height:68px;object-fit:contain}
+.brand-copy{line-height:1;text-align:left}.brand-name{color:#fff;font-family:"Brush Script MT","Segoe Script",cursive;font-size:2.35rem;font-style:italic;font-weight:800;text-shadow:0 2px 4px #001b3caa}.brand-name::after{content:"";display:block;height:4px;margin:4px 0 6px;border-radius:99px;background:var(--gold);transform:skewX(-25deg) rotate(-2deg)}
+.brand-subtitle{font-size:.77rem;font-weight:800;letter-spacing:.04em}.brand-region{display:block;margin-top:3px;font-size:.55rem;letter-spacing:.22em;opacity:.92}
 
-nav a{color:var(--navy);text-decoration:none;font-weight:800;margin-left:20px}
+nav a{color:white;text-decoration:none;font-weight:800;margin-left:20px;text-shadow:0 1px 3px #001b3c88}
 main{width:min(1180px,92vw);margin:30px auto 45px}
 .intro{text-align:center;margin:0 auto 28px;max-width:780px}.intro h2{font-size:2.1rem;margin:0 0 9px;color:var(--red)}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
-.card{background:white;border-radius:18px;overflow:hidden;box-shadow:0 12px 30px #15344d22;border:1px solid #dce6ed}
+.card{background:rgba(255,255,255,.92);border-radius:18px;overflow:hidden;box-shadow:0 15px 38px #06325b29;border:1px solid #fff;backdrop-filter:blur(10px);transition:transform .18s ease,box-shadow .18s ease}
+.card:hover{transform:translateY(-3px);box-shadow:0 19px 44px #06325b38}
 .shot{aspect-ratio:16/9;background:#dceaf3;overflow:hidden}.shot img{width:100%;height:100%;object-fit:cover;display:block}
 .content{padding:18px 19px 21px}.content h3{margin:0 0 8px;font-size:1.18rem;color:var(--navy)}
 .content p{margin:0;line-height:1.5;color:#506474;font-size:.94rem}
@@ -27,7 +31,7 @@ footer nav{display:flex;gap:18px;align-items:center}
 @media(max-width:620px){.grid{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}nav a{margin:0 18px 0 0}}
 
 nav .nav-contact{
-  color:var(--navy);text-decoration:none;font-weight:700;margin-left:20px;
+  color:white;text-decoration:none;font-weight:700;margin-left:20px;
   border:0;background:transparent;font:inherit;cursor:pointer;padding:0
 }
 nav .nav-contact:hover{text-decoration:underline}
@@ -47,7 +51,10 @@ textarea{min-height:125px;resize:vertical}
 </head>
 <body>
 <header>
- <div class="brand"><img src="logo-lou-codi-header.jpg" alt="Lou Còdi — Club de programmation · Occitanie — Côte d’Azur"></div>
+ <div class="brand" aria-label="Lou Còdi — Club de programmation · Occitanie — Côte d’Azur">
+   <img src="assets/logo-rond-lou-codi.png" alt="">
+   <div class="brand-copy"><div class="brand-name">Lou Còdi</div><div class="brand-subtitle">Club de programmation<span class="brand-region">OCCITANIE · CÔTE D’AZUR</span></div></div>
+ </div>
  <nav><a href="index.html">Accueil</a><button class="nav-contact" id="openContact" type="button">Contact</button></nav>
 </header>
 <main>
@@ -56,7 +63,7 @@ textarea{min-height:125px;resize:vertical}
    <p>Quelques réalisations développées à partir de besoins concrets rencontrés dans la formation professionnelle, l’organisation des parcours et la prévention des risques.</p>
  </section>
  <section class="grid">
-   <article class="card">
+   <article class="card" data-order="10">
      <div class="shot"><img src="assets/projet-prevention-paca.png" alt="Aperçu du portail Prévention PACA"></div>
      <div class="content">
        <h3>Guide pour la prévention des risques</h3>
@@ -64,15 +71,15 @@ textarea{min-height:125px;resize:vertical}
        <div class="actions"><a class="primary" href="https://preventionpaca.loucodi.fr">En savoir plus</a></div>
      </div>
    </article>
-   <article class="card">
+   <article class="card" data-order="50">
      <div class="shot"><img src="assets/projet-suivi-appels-anonymise.jpg" alt="Aperçu anonymisé de la plateforme de suivi des appels"></div>
      <div class="content"><h3>Plateforme de suivi d’appels téléphoniques</h3><p>Centralisation, attribution et suivi des demandes reçues, avec historique des actions et organisation du traitement par l’équipe.</p></div>
    </article>
-   <article class="card">
+   <article class="card" data-order="60">
      <div class="shot"><img src="assets/projet-mini-stages-anonymise.jpg" alt="Aperçu anonymisé de l'outil de gestion des mini-stages"></div>
      <div class="content"><h3>Gestion de mini-stages collège–lycée</h3><p>Organisation des inscriptions, conventions, capacités d’accueil, affectations et suivi des mini-stages entre collèges et lycée.</p></div>
    </article>
-   <article class="card">
+   <article class="card" data-order="40">
      <div class="shot"><img src="assets/lou-codi-workshop.jpg" alt="Page d’accueil de Lou Còdi Workshop"></div>
      <div class="content">
        <h3>Lou Còdi Workshop</h3>
@@ -114,6 +121,10 @@ textarea{min-height:125px;resize:vertical}
 
 <script>
 const modal=document.getElementById('contactModal');
+const projectGrid=document.querySelector('.grid');
+Array.from(projectGrid.querySelectorAll('.card'))
+  .sort((a,b)=>Number(a.dataset.order||0)-Number(b.dataset.order||0))
+  .forEach(card=>projectGrid.append(card));
 document.getElementById('openContact').addEventListener('click',()=>modal.classList.add('open'));
 document.getElementById('closeContact').addEventListener('click',()=>modal.classList.remove('open'));
 modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('open')});
