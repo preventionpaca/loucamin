@@ -2,6 +2,29 @@ const LC_ADMIN_VERSION = '1.0.0-alpha.1';
 // Dans Grist, la table affichée « Administrateurs » conserve l'identifiant technique Table1.
 const LC_ADMIN_TABLE = 'Table1';
 const LC_PRODUCTS_TABLE = 'Produits';
+const LC_INITIAL_PRODUCTS = [
+  {
+    Slug: 'guide-prevention-risques',
+    Titre: 'Guide pour la prévention des risques',
+    Description: 'Portail et outils destinés à accompagner les établissements dans la prévention des risques professionnels et les démarches liées aux travaux réglementés.',
+    Image_URL: 'https://loucodi.fr/assets/projet-prevention-paca.png',
+    Ordre: 10
+  },
+  {
+    Slug: 'suivi-appels-telephoniques',
+    Titre: 'Plateforme de suivi d’appels téléphoniques',
+    Description: 'Centralisation, attribution et suivi des demandes reçues, avec historique des actions et organisation du traitement par l’équipe.',
+    Image_URL: 'https://loucodi.fr/assets/projet-suivi-appels-anonymise.jpg',
+    Ordre: 20
+  },
+  {
+    Slug: 'gestion-mini-stages',
+    Titre: 'Gestion de mini-stages collège–lycée',
+    Description: 'Organisation des inscriptions, conventions, capacités d’accueil, affectations et suivi des mini-stages entre collèges et lycée.',
+    Image_URL: 'https://loucodi.fr/assets/projet-mini-stages-anonymise.jpg',
+    Ordre: 30
+  }
+];
 
 function doGet() {
   return HtmlService.createTemplateFromFile('Index')
@@ -11,6 +34,11 @@ function doGet() {
 
 function LC_include_(name) {
   return HtmlService.createHtmlOutputFromFile(name).getContent();
+}
+
+function LC_changerCompteUrl_() {
+  const applicationUrl = ScriptApp.getService().getUrl();
+  return 'https://accounts.google.com/AccountChooser?continue=' + encodeURIComponent(applicationUrl);
 }
 
 function LC_config_() {
@@ -114,9 +142,39 @@ function LC_vueProduit_(record) {
   };
 }
 
+function LC_ajouterProduitsInitiaux_(admin, records) {
+  if (!admin.peutModifier) return;
+  const slugs = new Set((records || []).map(function(record) {
+    return String((record.fields || {}).Slug || '').trim().toLowerCase();
+  }));
+  const now = new Date().toISOString();
+  const missing = LC_INITIAL_PRODUCTS.filter(function(product) {
+    return !slugs.has(product.Slug);
+  }).map(function(product) {
+    return {fields: Object.assign({
+      Lien_Principal: '',
+      Libelle_Principal: '',
+      Lien_Telechargement: '',
+      Confidentialite_URL: '',
+      Conditions_URL: '',
+      Visible: true,
+      Cree_le: now,
+      Modifie_le: now,
+      Modifie_par: admin.email
+    }, product)};
+  });
+  if (missing.length) LC_grist_('post', '/tables/' + LC_PRODUCTS_TABLE + '/records', {records: missing});
+}
+
 function chargerAdministration() {
   const admin = LC_contexteAdministrateur_();
-  const result = LC_grist_('get', '/tables/' + LC_PRODUCTS_TABLE + '/records');
+  let result = LC_grist_('get', '/tables/' + LC_PRODUCTS_TABLE + '/records');
+  LC_ajouterProduitsInitiaux_(admin, result.records || []);
+  if (LC_INITIAL_PRODUCTS.some(function(product) {
+    return !(result.records || []).some(function(record) {
+      return String((record.fields || {}).Slug || '').trim().toLowerCase() === product.Slug;
+    });
+  })) result = LC_grist_('get', '/tables/' + LC_PRODUCTS_TABLE + '/records');
   const produits = (result.records || []).map(LC_vueProduit_).sort(function(a, b) {
     return a.ordre - b.ordre || a.titre.localeCompare(b.titre, 'fr');
   });
