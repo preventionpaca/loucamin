@@ -5,8 +5,7 @@ const LC_PRODUCTS_TABLE = 'Produits';
 function doGet() {
   return HtmlService.createTemplateFromFile('Index')
     .evaluate()
-    .setTitle('Administration — Lou Còdi')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DENY);
+    .setTitle('Administration — Lou Còdi');
 }
 
 function LC_include_(name) {
