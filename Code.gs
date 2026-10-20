@@ -8,7 +8,7 @@
  * - Qui a accès : Tout le monde
  */
 
-const LOUCAMIN_CONTACT_DESTINATION = 'rudy.themines@gmail.com';
+const LOUCAMIN_CONTACT_DESTINATION = 'contact@loucodi.fr';
 const LOUCAMIN_SITE_NAME = 'Lou Camin';
 
 function doGet() {
