@@ -1,4 +1,4 @@
-const LC_ADMIN_VERSION = '1.0.0-alpha.4';
+const LC_ADMIN_VERSION = '1.0.0-alpha.5';
 // Dans Grist, la table affichée « Administrateurs » conserve l'identifiant technique Table1.
 const LC_ADMIN_TABLE = 'Table1';
 const LC_PRODUCTS_TABLE = 'Produits';
@@ -91,7 +91,26 @@ function LC_emailActif_() {
 }
 
 function LC_bool_(value) {
-  return value === true || String(value || '').trim().toLowerCase() === 'true';
+  if (value === true || value === 1) return true;
+  return ['true', '1', 'yes', 'oui', 'x'].indexOf(
+    String(value == null ? '' : value).trim().toLowerCase()
+  ) !== -1;
+}
+
+function LC_emailAdministrateur_(fields) {
+  const preferred = [fields.Email, fields.A];
+  for (let index = 0; index < preferred.length; index += 1) {
+    const value = String(preferred[index] == null ? '' : preferred[index]).trim().toLowerCase();
+    if (value && value.indexOf('@') !== -1) return value;
+  }
+  // Compatibilité avec une table créée manuellement : le libellé visible et
+  // l'identifiant technique de la colonne peuvent être différents dans Grist.
+  const values = Object.keys(fields).map(function(key) { return fields[key]; });
+  for (let index = 0; index < values.length; index += 1) {
+    const value = String(values[index] == null ? '' : values[index]).trim().toLowerCase();
+    if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) return value;
+  }
+  return '';
 }
 
 function LC_contexteAdministrateur_() {
@@ -104,15 +123,16 @@ function LC_contexteAdministrateur_() {
   const result = LC_grist_('get', '/tables/' + LC_ADMIN_TABLE + '/records');
   const matches = (result.records || []).filter(function(record) {
     const fields = record.fields || {};
-    const namedEmail = String(fields.Email || '').trim();
-    const legacyEmail = String(fields.A || '').trim();
-    const recordEmail = (namedEmail || legacyEmail).toLowerCase();
-    return recordEmail === email && LC_bool_(fields.Actif);
+    return LC_emailAdministrateur_(fields) === email && LC_bool_(fields.Actif);
   });
   if (matches.length !== 1) {
+    const accountRecord = (result.records || []).find(function(record) {
+      return LC_emailAdministrateur_(record.fields || {}) === email;
+    });
     throw new Error(
-      'Le compte Google détecté (' + email + ') n’est pas autorisé à administrer le site. ' +
-      'Utilisez « Changer de compte Google » ou ajoutez exactement cette adresse dans Grist.'
+      accountRecord
+        ? 'Le compte Google ' + email + ' est présent dans Grist, mais sa colonne Actif n’est pas cochée.'
+        : 'Le compte Google détecté (' + email + ') n’existe dans aucune ligne de la table Administrateurs.'
     );
   }
   const fields = matches[0].fields;
