@@ -23,6 +23,7 @@ function LC_config_() {
 
 function LC_grist_(method, path, body) {
   const config = LC_config_();
+  const documentUrl = config.apiUrl + '/api/docs/' + encodeURIComponent(config.docId);
   const options = {
     method: method,
     muteHttpExceptions: true,
@@ -33,11 +34,26 @@ function LC_grist_(method, path, body) {
     options.payload = JSON.stringify(body);
   }
   const response = UrlFetchApp.fetch(
-    config.apiUrl + '/api/docs/' + encodeURIComponent(config.docId) + path,
+    documentUrl + path,
     options
   );
   const status = response.getResponseCode();
-  if (status < 200 || status >= 300) throw new Error('Grist indisponible ou requête refusée (' + status + ').');
+  if (status < 200 || status >= 300) {
+    if (status === 404 && path.indexOf('/tables/') === 0) {
+      const probe = UrlFetchApp.fetch(documentUrl + '/tables', {
+        method: 'get',
+        muteHttpExceptions: true,
+        headers: options.headers
+      });
+      if (probe.getResponseCode() === 200) {
+        const tableData = JSON.parse(probe.getContentText() || '{}');
+        const tableIds = (tableData.tables || []).map(function(table) { return table.id; });
+        throw new Error('Table Grist introuvable. Tables disponibles : ' + (tableIds.join(', ') || 'aucune') + '.');
+      }
+      throw new Error('Le document Grist est introuvable ou le jeton utilisé n’y a pas accès (404).');
+    }
+    throw new Error('Grist indisponible ou requête refusée (' + status + ').');
+  }
   return JSON.parse(response.getContentText() || '{}');
 }
 
