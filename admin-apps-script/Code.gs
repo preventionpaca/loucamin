@@ -1,4 +1,4 @@
-const LC_ADMIN_VERSION = '1.0.0-alpha.1';
+const LC_ADMIN_VERSION = '1.0.0-alpha.2';
 // Dans Grist, la table affichée « Administrateurs » conserve l'identifiant technique Table1.
 const LC_ADMIN_TABLE = 'Table1';
 const LC_PRODUCTS_TABLE = 'Produits';
@@ -97,17 +97,21 @@ function LC_bool_(value) {
 function LC_contexteAdministrateur_() {
   const email = LC_emailActif_();
   if (!email) throw new Error('Identité Google indisponible. Reconnectez-vous avec un compte autorisé.');
-  const filter = encodeURIComponent(JSON.stringify({Email: [email]}));
-  const result = LC_grist_('get', '/tables/' + LC_ADMIN_TABLE + '/records?filter=' + filter);
+  // Les premières lignes du document ont été saisies avant la création des
+  // colonnes nommées : l'adresse et le nom se trouvent alors dans A et B.
+  // Lire la petite table complète permet de migrer progressivement ces lignes
+  // sans bloquer le compte qui doit justement ouvrir l'administration.
+  const result = LC_grist_('get', '/tables/' + LC_ADMIN_TABLE + '/records');
   const matches = (result.records || []).filter(function(record) {
     const fields = record.fields || {};
-    return String(fields.Email || '').trim().toLowerCase() === email && LC_bool_(fields.Actif);
+    const recordEmail = String(fields.Email || fields.A || '').trim().toLowerCase();
+    return recordEmail === email && LC_bool_(fields.Actif);
   });
   if (matches.length !== 1) throw new Error('Ce compte Google n’est pas autorisé à administrer le site.');
   const fields = matches[0].fields;
   return {
     email: email,
-    nom: String(fields.Nom_affichage || email),
+    nom: String(fields.Nom_affichage || fields.B || email),
     role: String(fields.Role || 'EDITEUR'),
     peutModifier: LC_bool_(fields.Peut_modifier_produits) || String(fields.Role || '').toUpperCase() === 'ADMIN'
   };
