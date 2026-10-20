@@ -1,0 +1,35 @@
+{
+  "tables": [
+    {
+      "id": "Produits",
+      "columns": [
+        {"id":"Slug","fields":{"type":"Text","isFormula":false}},
+        {"id":"Titre","fields":{"type":"Text","isFormula":false}},
+        {"id":"Description","fields":{"type":"Text","isFormula":false}},
+        {"id":"Image_URL","fields":{"type":"Text","isFormula":false}},
+        {"id":"Lien_Principal","fields":{"type":"Text","isFormula":false}},
+        {"id":"Libelle_Principal","fields":{"type":"Text","isFormula":false}},
+        {"id":"Lien_Telechargement","fields":{"type":"Text","isFormula":false}},
+        {"id":"Confidentialite_URL","fields":{"type":"Text","isFormula":false}},
+        {"id":"Conditions_URL","fields":{"type":"Text","isFormula":false}},
+        {"id":"Ordre","fields":{"type":"Int","isFormula":false}},
+        {"id":"Visible","fields":{"type":"Bool","isFormula":false}},
+        {"id":"Cree_le","fields":{"type":"DateTime:Europe/Paris","isFormula":false}},
+        {"id":"Modifie_le","fields":{"type":"DateTime:Europe/Paris","isFormula":false}},
+        {"id":"Modifie_par","fields":{"type":"Text","isFormula":false}}
+      ]
+    },
+    {
+      "id": "Administrateurs",
+      "columns": [
+        {"id":"Email","fields":{"type":"Text","isFormula":false}},
+        {"id":"Nom_affichage","fields":{"type":"Text","isFormula":false}},
+        {"id":"Role","fields":{"type":"Choice","isFormula":false,"widgetOptions":"{\"choices\":[\"ADMIN\",\"EDITEUR\",\"LECTURE_SEULE\"]}"}},
+        {"id":"Actif","fields":{"type":"Bool","isFormula":false}},
+        {"id":"Peut_modifier_produits","fields":{"type":"Bool","isFormula":false}},
+        {"id":"Cree_le","fields":{"type":"DateTime:Europe/Paris","isFormula":false}},
+        {"id":"Modifie_le","fields":{"type":"DateTime:Europe/Paris","isFormula":false}}
+      ]
+    }
+  ]
+}

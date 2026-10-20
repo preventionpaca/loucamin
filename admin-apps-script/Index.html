@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Administration — Lou Còdi</title>
+  <?!= LC_include_('Styles'); ?>
+</head>
+<body>
+  <header><h1>Administration Lou Còdi</h1><p id="identity">Connexion Google en cours…</p></header>
+  <main>
+    <section class="panel">
+      <h2>Produits et réalisations</h2>
+      <p>Les produits masqués restent conservés dans Grist mais ne doivent pas être publiés sur le site.</p>
+      <div id="status" role="status" aria-live="polite"></div>
+      <div id="products" class="products"></div>
+      <button id="newProduct" type="button">+ Nouveau produit</button>
+    </section>
+    <section class="panel editor" id="editor" hidden>
+      <h2 id="editorTitle">Nouveau produit</h2>
+      <form id="productForm">
+        <input type="hidden" name="id">
+        <label>Titre <input name="titre" required maxlength="180"></label>
+        <label>Identifiant <input name="slug" required maxlength="120" placeholder="mon-produit"></label>
+        <label>Description <textarea name="description" rows="5" maxlength="3000"></textarea></label>
+        <label>URL de l’image <input name="imageUrl" type="url"></label>
+        <label>Lien principal <input name="lienPrincipal" type="url"></label>
+        <label>Libellé du lien <input name="libellePrincipal" maxlength="80" placeholder="En savoir plus"></label>
+        <label>Téléchargement <input name="lienTelechargement" type="url"></label>
+        <label>Confidentialité <input name="confidentialiteUrl" type="url"></label>
+        <label>Conditions d’utilisation <input name="conditionsUrl" type="url"></label>
+        <label>Ordre <input name="ordre" type="number" min="0" max="9999" value="0"></label>
+        <label class="check"><input name="visible" type="checkbox"> Visible sur le site</label>
+        <div class="actions"><button type="submit">Enregistrer</button><button id="cancel" type="button" class="secondary">Annuler</button></div>
+      </form>
+    </section>
+  </main>
+  <?!= LC_include_('Scripts'); ?>
+</body>
+</html>

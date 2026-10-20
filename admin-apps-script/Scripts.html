@@ -1,0 +1,35 @@
+<script>
+const state={products:[],canEdit:false};
+const byId=id=>document.getElementById(id);
+function status(message){byId('status').textContent=message||'';}
+function fail(error){status(error&&error.message?error.message:String(error||'Erreur inconnue.'));}
+function render(){
+  const root=byId('products');root.replaceChildren();
+  state.products.forEach(product=>{
+    const card=document.createElement('article');card.className='product';
+    const title=document.createElement('h3');title.textContent=product.titre;
+    const description=document.createElement('p');description.textContent=product.description||'Sans description';
+    const badge=document.createElement('span');badge.className='badge'+(product.visible?' visible':'');badge.textContent=product.visible?'Visible':'Masqué';
+    card.append(title,description,badge);
+    if(state.canEdit){const button=document.createElement('button');button.type='button';button.className='editButton';button.textContent='Modifier';button.addEventListener('click',()=>openEditor(product));card.append(button);}
+    root.append(card);
+  });
+}
+function openEditor(product={}){
+  const form=byId('productForm');form.reset();
+  for(const [key,value] of Object.entries(product)){if(form.elements[key]){if(form.elements[key].type==='checkbox')form.elements[key].checked=value===true;else form.elements[key].value=value??'';}}
+  byId('editorTitle').textContent=product.id?'Modifier le produit':'Nouveau produit';
+  byId('editor').hidden=false;form.elements.titre.focus();
+}
+function load(){
+  status('Chargement…');
+  google.script.run.withSuccessHandler(data=>{state.products=data.produits;state.canEdit=data.administrateur.peutModifier;byId('identity').textContent=data.administrateur.nom+' — '+data.administrateur.email;byId('newProduct').hidden=!state.canEdit;status('');render();}).withFailureHandler(fail).chargerAdministration();
+}
+byId('newProduct').addEventListener('click',()=>openEditor());
+byId('cancel').addEventListener('click',()=>{byId('editor').hidden=true;});
+byId('productForm').addEventListener('submit',event=>{
+  event.preventDefault();const form=event.currentTarget;const payload=Object.fromEntries(new FormData(form));payload.visible=form.elements.visible.checked;payload.id=Number(payload.id||0);payload.ordre=Number(payload.ordre||0);status('Enregistrement…');
+  google.script.run.withSuccessHandler(()=>{byId('editor').hidden=true;load();}).withFailureHandler(fail).enregistrerProduit(payload);
+});
+load();
+</script>
