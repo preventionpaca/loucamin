@@ -49,6 +49,32 @@
       <p class="publicationStatus" id="publicationStatus" role="status" aria-live="polite"></p>
       <p class="publicationHelp" id="publicationHelp"></p>
     </section>
+    <section class="panel pageBuilderPanel" id="pageBuilderPanel">
+      <div class="sectionHeading">
+        <div><h2>Pages du site</h2><p>Composez une page avec des blocs structurés. Sur téléphone, ils s’empilent automatiquement.</p></div>
+        <button id="newPage" type="button">+ Nouvelle page</button>
+      </div>
+      <div id="sitePages" class="sitePages" aria-live="polite"></div>
+      <form id="pageForm" class="pageForm" hidden>
+        <div class="pageMetadata">
+          <label>Titre de la page <input name="title" required maxlength="180"></label>
+          <label>Identifiant dans l’adresse <input name="slug" required maxlength="80" placeholder="ma-nouvelle-page"></label>
+          <label class="wide">Introduction <textarea name="introduction" rows="3" maxlength="3000"></textarea></label>
+        </div>
+        <div class="builderToolbar" aria-label="Ajouter un bloc">
+          <strong>Blocs de la page</strong>
+          <button type="button" data-add-block="text">+ Texte</button>
+          <button type="button" data-add-block="card">+ Vignette</button>
+          <button type="button" data-add-block="image">+ Image</button>
+        </div>
+        <p class="dragHelp">Faites glisser les blocs pour les réordonner. Leur largeur s’applique sur ordinateur ; le téléphone reste toujours sur une colonne.</p>
+        <div id="pageBlocks" class="pageBlocks"></div>
+        <h3>Aperçu de la structure</h3>
+        <div id="pagePreview" class="pagePreview"></div>
+        <div class="actions"><button id="publishPage" type="submit">Publier cette page</button><button id="cancelPage" type="button" class="secondary">Fermer</button></div>
+        <p id="pageStatus" class="publicationStatus" role="status" aria-live="polite"></p>
+      </form>
+    </section>
   </main>
   <?!= LC_include_('Scripts'); ?>
 </body>

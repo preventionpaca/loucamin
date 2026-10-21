@@ -1,5 +1,5 @@
 <script>
-const state={products:[],canEdit:false};
+const state={products:[],pages:[],pageBlocks:[],canEdit:false,pagesConfigured:false};
 const byId=id=>document.getElementById(id);
 function status(message){byId('status').textContent=message||'';}
 function fail(error){
@@ -24,15 +24,67 @@ function openEditor(product={}){
   byId('editorTitle').textContent=product.id?'Modifier le produit':'Nouveau produit';
   byId('editor').hidden=false;form.elements.titre.focus();
 }
+function slugify(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);}
+function pageMessage(message,error=false){const node=byId('pageStatus');node.textContent=message||'';node.classList.toggle('error',error);}
+function renderPages(){
+  const root=byId('sitePages');root.replaceChildren();
+  if(!state.pages.length){const empty=document.createElement('p');empty.className='emptyNotice';empty.textContent='Aucune page personnalisée publiée pour le moment.';root.append(empty);return;}
+  state.pages.forEach(page=>{
+    const card=document.createElement('article');card.className='sitePage';const title=document.createElement('h3');title.textContent=page.title;const meta=document.createElement('p');meta.textContent='Adresse : '+page.slug;const actions=document.createElement('div');actions.className='sitePageActions';
+    const edit=document.createElement('button');edit.type='button';edit.textContent='Modifier';edit.addEventListener('click',()=>loadPageContent(page.slug));
+    const view=document.createElement('a');view.href='https://loucodi.fr/page.html?page='+encodeURIComponent(page.slug);view.target='_blank';view.rel='noopener';view.textContent='Voir la page';actions.append(edit,view);card.append(title,meta,actions);root.append(card);
+  });
+}
+function loadPages(){
+  if(!state.canEdit||!state.pagesConfigured)return;
+  google.script.run.withSuccessHandler(pages=>{state.pages=Array.isArray(pages)?pages:[];renderPages();}).withFailureHandler(error=>pageMessage(error&&error.message?error.message:String(error),true)).chargerPagesSite();
+}
+function openPageEditor(page={}){
+  const form=byId('pageForm');form.reset();form.hidden=false;form.elements.title.value=page.title||'';form.elements.slug.value=page.slug||'';form.elements.introduction.value=page.introduction||'';form.elements.slug.readOnly=Boolean(page.slug);state.pageBlocks=Array.isArray(page.blocks)?page.blocks.map(block=>({...block})):[];pageMessage('');renderPageBlocks();form.elements.title.focus();form.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function loadPageContent(slug){pageMessage('Chargement de la page…');google.script.run.withSuccessHandler(openPageEditor).withFailureHandler(error=>pageMessage(error&&error.message?error.message:String(error),true)).chargerContenuPageSite(slug);}
+function blockLabel(type){return type==='card'?'Vignette':type==='image'?'Image':'Texte';}
+function field(label,name,value,options={}){
+  const wrapper=document.createElement('label');wrapper.className=options.wide?'wide':'';wrapper.append(document.createTextNode(label));let control;
+  if(options.kind==='textarea'){control=document.createElement('textarea');control.rows=options.rows||3;}else if(options.kind==='select'){control=document.createElement('select');[['full','Toute la largeur'],['half','Demi-largeur'],['third','Un tiers']].forEach(item=>{const option=document.createElement('option');option.value=item[0];option.textContent=item[1];control.append(option)});}else{control=document.createElement('input');control.type=options.kind||'text';}
+  control.name=name;if(options.placeholder)control.placeholder=options.placeholder;if(options.kind==='checkbox')control.checked=value===true;else control.value=value??'';control.addEventListener('input',()=>{const index=Number(wrapper.closest('.pageBlock').dataset.index);state.pageBlocks[index][name]=control.type==='checkbox'?control.checked:control.value;renderPagePreview();});wrapper.append(control);return wrapper;
+}
+function renderPageBlocks(){
+  const root=byId('pageBlocks');root.replaceChildren();state.pageBlocks.forEach((block,index)=>{
+    const item=document.createElement('article');item.className='pageBlock';item.draggable=true;item.dataset.index=index;
+    const handle=document.createElement('button');handle.type='button';handle.className='dragHandle';handle.title='Faire glisser pour réordonner';handle.textContent='☰ '+blockLabel(block.type);
+    const fields=document.createElement('div');fields.className='blockFields';fields.append(field('Largeur sur ordinateur','width',block.width||'full',{kind:'select'}));
+    if(block.type==='text'){fields.append(field('Titre','title',block.title),field('Contenu','content',block.content,{kind:'textarea',rows:5,wide:true}));}
+    if(block.type==='card'){fields.append(field('Titre','title',block.title),field('Petit logo (https:// ou assets/)','icon',block.icon),field('Contenu','content',block.content,{kind:'textarea',rows:5,wide:true}),field('Dépliée dès l’ouverture','open',block.open,{kind:'checkbox',wide:true}));}
+    if(block.type==='image'){fields.append(field('Image (https:// ou assets/)','src',block.src),field('Texte alternatif','alt',block.alt),field('Légende','caption',block.caption,{wide:true}));}
+    const actions=document.createElement('div');actions.className='blockActions';const up=document.createElement('button');up.type='button';up.className='secondary';up.textContent='↑';up.disabled=index===0;up.addEventListener('click',()=>moveBlock(index,index-1));const down=document.createElement('button');down.type='button';down.className='secondary';down.textContent='↓';down.disabled=index===state.pageBlocks.length-1;down.addEventListener('click',()=>moveBlock(index,index+1));const remove=document.createElement('button');remove.type='button';remove.className='danger';remove.textContent='Supprimer';remove.addEventListener('click',()=>{state.pageBlocks.splice(index,1);renderPageBlocks()});actions.append(up,down,remove);item.append(handle,fields,actions);
+    item.addEventListener('dragstart',event=>{item.classList.add('dragging');event.dataTransfer.setData('text/plain',String(index));event.dataTransfer.effectAllowed='move'});item.addEventListener('dragend',()=>item.classList.remove('dragging'));item.addEventListener('dragover',event=>{event.preventDefault();event.dataTransfer.dropEffect='move'});item.addEventListener('drop',event=>{event.preventDefault();const from=Number(event.dataTransfer.getData('text/plain'));if(Number.isInteger(from)&&from!==index)moveBlock(from,index)});root.append(item);
+  });renderPagePreview();
+}
+function moveBlock(from,to){if(to<0||to>=state.pageBlocks.length)return;const moved=state.pageBlocks.splice(from,1)[0];state.pageBlocks.splice(to,0,moved);renderPageBlocks();}
+function addBlock(type){const defaults={text:{type:'text',width:'full',title:'Nouveau titre',content:''},card:{type:'card',width:'third',title:'Nouvelle vignette',icon:'',content:'',open:false},image:{type:'image',width:'half',src:'',alt:'',caption:''}};state.pageBlocks.push({...defaults[type]});renderPageBlocks();}
+function safePreviewImage(value){value=String(value||'').trim();if(/^https:\/\//i.test(value))return value;if(/^assets\/[A-Za-z0-9_./-]+$/.test(value)&&!value.includes('..'))return 'https://loucodi.fr/'+value;return '';}
+function renderPagePreview(){
+  const root=byId('pagePreview');root.replaceChildren();if(!state.pageBlocks.length){const empty=document.createElement('p');empty.className='emptyNotice';empty.textContent='Ajoutez un premier bloc pour afficher l’aperçu.';root.append(empty);return;}
+  state.pageBlocks.forEach(block=>{const node=document.createElement('div');node.className='previewBlock'+(block.type==='card'?' previewCard':'');node.dataset.width=block.width||'full';if(block.type==='image'){const safeSrc=safePreviewImage(block.src);if(safeSrc){const image=document.createElement('img');image.src=safeSrc;image.alt='';node.append(image)}const caption=document.createElement('small');caption.textContent=block.caption||'Image';node.append(caption);}else{const title=document.createElement('strong');title.textContent=block.title||blockLabel(block.type);const body=document.createElement('small');body.textContent=block.type==='card'&&!block.open?'Contenu replié par défaut':(block.content||'Sans contenu');node.append(title,body)}root.append(node)});
+}
 function load(){
   status('Chargement…');
-  google.script.run.withSuccessHandler(data=>{state.products=data.produits;state.canEdit=data.administrateur.peutModifier;byId('identity').textContent=data.administrateur.nom+' — '+data.administrateur.email;byId('newProduct').hidden=!state.canEdit;byId('publishLayout').hidden=!state.canEdit;byId('publishLayout').disabled=!data.publicationAccueilConfiguree;byId('publicationHelp').textContent=data.publicationAccueilConfiguree?'La publication crée une modification traçable dans le dépôt du site.':'La liaison de publication GitHub doit être configurée dans les propriétés sécurisées de l’administration.';status('');render();}).withFailureHandler(fail).chargerAdministration();
+  google.script.run.withSuccessHandler(data=>{state.products=data.produits;state.canEdit=data.administrateur.peutModifier;state.pagesConfigured=data.publicationPagesConfiguree===true;byId('identity').textContent=data.administrateur.nom+' — '+data.administrateur.email;byId('newProduct').hidden=!state.canEdit;byId('newPage').hidden=!state.canEdit;byId('newPage').disabled=!state.pagesConfigured;byId('publishLayout').hidden=!state.canEdit;byId('publishLayout').disabled=!data.publicationAccueilConfiguree;byId('publicationHelp').textContent=data.publicationAccueilConfiguree?'La publication crée une modification traçable dans le dépôt du site.':'La liaison de publication GitHub doit être configurée dans les propriétés sécurisées de l’administration.';status('');render();renderPages();loadPages();}).withFailureHandler(fail).chargerAdministration();
 }
 byId('newProduct').addEventListener('click',()=>openEditor());
 byId('cancel').addEventListener('click',()=>{byId('editor').hidden=true;});
 byId('productForm').addEventListener('submit',event=>{
   event.preventDefault();const form=event.currentTarget;const payload=Object.fromEntries(new FormData(form));payload.visible=form.elements.visible.checked;payload.id=Number(payload.id||0);payload.ordre=Number(payload.ordre||0);status('Enregistrement…');
   google.script.run.withSuccessHandler(()=>{byId('editor').hidden=true;load();}).withFailureHandler(fail).enregistrerProduit(payload);
+});
+byId('newPage').addEventListener('click',()=>openPageEditor());
+byId('cancelPage').addEventListener('click',()=>{byId('pageForm').hidden=true;});
+document.querySelectorAll('[data-add-block]').forEach(button=>button.addEventListener('click',()=>addBlock(button.dataset.addBlock)));
+byId('pageForm').elements.title.addEventListener('input',event=>{const slug=byId('pageForm').elements.slug;if(!slug.readOnly)slug.value=slugify(event.target.value)});
+byId('pageForm').addEventListener('submit',event=>{
+  event.preventDefault();const form=event.currentTarget;const payload={title:form.elements.title.value,slug:form.elements.slug.value,introduction:form.elements.introduction.value,blocks:state.pageBlocks};if(!confirm('Publier la page « '+payload.title+' » sur le site ?'))return;pageMessage('Publication en cours…');byId('publishPage').disabled=true;
+  google.script.run.withSuccessHandler(result=>{byId('publishPage').disabled=false;pageMessage('Page publiée. GitHub Pages va l’actualiser dans quelques instants.');loadPages();if(result.url){const link=document.createElement('a');link.href=result.url;link.target='_blank';link.rel='noopener';link.textContent=' Ouvrir la page';byId('pageStatus').append(link)}}).withFailureHandler(error=>{byId('publishPage').disabled=false;pageMessage(error&&error.message?error.message:String(error),true)}).publierPageSite(payload);
 });
 byId('publishLayout').addEventListener('click',()=>{
   const publicationStatus=byId('publicationStatus');

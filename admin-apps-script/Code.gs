@@ -1,4 +1,4 @@
-const LC_ADMIN_VERSION = '1.2.0';
+const LC_ADMIN_VERSION = '1.3.0';
 // Dans Grist, la table affichée « Administrateurs » conserve l'identifiant technique Table1.
 const LC_ADMIN_TABLE = 'Table1';
 const LC_PRODUCTS_TABLE = 'Produits';
@@ -214,7 +214,8 @@ function chargerAdministration() {
     version: LC_ADMIN_VERSION,
     administrateur: admin,
     produits: produits,
-    publicationAccueilConfiguree: Boolean(String(PropertiesService.getScriptProperties().getProperty('LC_GITHUB_TOKEN') || '').trim())
+    publicationAccueilConfiguree: Boolean(String(PropertiesService.getScriptProperties().getProperty('LC_GITHUB_TOKEN') || '').trim()),
+    publicationPagesConfiguree: Boolean(String(PropertiesService.getScriptProperties().getProperty('LC_GITHUB_TOKEN') || '').trim())
   };
 }
 
@@ -289,6 +290,139 @@ function publierReglageAccueil(payload) {
     branch: 'main'
   });
   return {fonds: publishedThemes, nombre: publishedThemes.length, commit: updated.commit && updated.commit.sha ? String(updated.commit.sha) : ''};
+}
+
+function LC_slugPage_(value) {
+  const slug = LC_nettoyer_(value, 80).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+  if (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(slug)) throw new Error('L’identifiant de page est invalide.');
+  return slug;
+}
+
+function LC_urlMedia_(value) {
+  const url = LC_nettoyer_(value, 1000);
+  if (!url) return '';
+  if (/^https:\/\//i.test(url)) return url;
+  if (/^assets\/[A-Za-z0-9_./-]+$/.test(url) && url.indexOf('..') === -1) return url;
+  throw new Error('Une image doit utiliser une adresse https:// ou un chemin assets/ du site.');
+}
+
+function LC_nettoyerBlocPage_(block, index) {
+  block = block || {};
+  const type = LC_nettoyer_(block.type, 20).toLowerCase();
+  const width = ['full','half','third'].indexOf(block.width) === -1 ? 'full' : block.width;
+  const base = {id: 'bloc-' + (index + 1), type: type, width: width};
+  if (type === 'text') {
+    base.title = LC_nettoyer_(block.title, 180);
+    base.content = LC_nettoyer_(block.content, 12000);
+    if (!base.title && !base.content) throw new Error('Le bloc texte ' + (index + 1) + ' est vide.');
+    return base;
+  }
+  if (type === 'card') {
+    base.title = LC_nettoyer_(block.title, 180);
+    base.content = LC_nettoyer_(block.content, 8000);
+    base.icon = LC_urlMedia_(block.icon);
+    base.open = block.open === true;
+    if (!base.title) throw new Error('Le titre de la vignette ' + (index + 1) + ' est obligatoire.');
+    return base;
+  }
+  if (type === 'image') {
+    base.src = LC_urlMedia_(block.src);
+    base.alt = LC_nettoyer_(block.alt, 300);
+    base.caption = LC_nettoyer_(block.caption, 500);
+    if (!base.src) throw new Error('L’image du bloc ' + (index + 1) + ' est obligatoire.');
+    return base;
+  }
+  throw new Error('Le type du bloc ' + (index + 1) + ' est inconnu.');
+}
+
+function LC_lireFichierGithub_(path) {
+  try {
+    const file = LC_github_('get', '/contents/' + path + '?ref=main');
+    const decoded = Utilities.newBlob(Utilities.base64Decode(String(file.content || '').replace(/\s/g,''))).getDataAsString('UTF-8');
+    return {sha: String(file.sha || ''), text: decoded};
+  } catch (error) {
+    return null;
+  }
+}
+
+function LC_ecrireFichierGithub_(path, value, message, sha) {
+  const body = {
+    message: message,
+    content: Utilities.base64Encode(Utilities.newBlob(value, 'application/json').getBytes()),
+    branch: 'main'
+  };
+  if (sha) body.sha = sha;
+  return LC_github_('put', '/contents/' + path, body);
+}
+
+function chargerPagesSite() {
+  const admin = LC_contexteAdministrateur_();
+  if (!admin.peutModifier) return [];
+  const current = LC_lireFichierGithub_('assets/pages/index.json');
+  if (!current) return [];
+  try {
+    const parsed = JSON.parse(current.text || '{}');
+    return Array.isArray(parsed.pages) ? parsed.pages.map(function(page) {
+      return {slug: LC_slugPage_(page.slug), title: LC_nettoyer_(page.title, 180), updatedAt: LC_nettoyer_(page.updatedAt, 50)};
+    }) : [];
+  } catch (error) {
+    throw new Error('L’index des pages du site est invalide.');
+  }
+}
+
+function chargerContenuPageSite(slug) {
+  const admin = LC_contexteAdministrateur_();
+  if (!admin.peutModifier) throw new Error('Ce compte dispose uniquement d’un accès en lecture.');
+  const cleanSlug = LC_slugPage_(slug);
+  const current = LC_lireFichierGithub_('assets/pages/' + cleanSlug + '.json');
+  if (!current) throw new Error('Cette page est introuvable.');
+  try { return JSON.parse(current.text || '{}'); }
+  catch (error) { throw new Error('Le contenu de cette page est invalide.'); }
+}
+
+function publierPageSite(payload) {
+  const admin = LC_contexteAdministrateur_();
+  if (!admin.peutModifier) throw new Error('Ce compte dispose uniquement d’un accès en lecture.');
+  payload = payload || {};
+  const slug = LC_slugPage_(payload.slug);
+  const title = LC_nettoyer_(payload.title, 180);
+  if (!title) throw new Error('Le titre de la page est obligatoire.');
+  const inputBlocks = Array.isArray(payload.blocks) ? payload.blocks : [];
+  if (inputBlocks.length > 60) throw new Error('Une page ne peut pas dépasser 60 blocs.');
+  const now = new Date().toISOString();
+  const page = {
+    schemaVersion: 1,
+    slug: slug,
+    title: title,
+    introduction: LC_nettoyer_(payload.introduction, 3000),
+    updatedAt: now,
+    blocks: inputBlocks.map(LC_nettoyerBlocPage_)
+  };
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) throw new Error('Une autre publication est en cours. Réessayez.');
+  try {
+    const pagePath = 'assets/pages/' + slug + '.json';
+    const currentPage = LC_lireFichierGithub_(pagePath);
+    const writtenPage = LC_ecrireFichierGithub_(pagePath, JSON.stringify(page, null, 2) + '\n', 'Publie la page « ' + title + ' »', currentPage && currentPage.sha);
+    const currentIndex = LC_lireFichierGithub_('assets/pages/index.json');
+    let index = {pages: []};
+    if (currentIndex) {
+      try { index = JSON.parse(currentIndex.text || '{}'); } catch (error) { index = {pages: []}; }
+    }
+    if (!Array.isArray(index.pages)) index.pages = [];
+    const entry = {slug: slug, title: title, updatedAt: now};
+    const existing = index.pages.findIndex(function(item) { return item && item.slug === slug; });
+    if (existing === -1) index.pages.push(entry); else index.pages[existing] = entry;
+    index.pages.sort(function(a, b) { return String(a.title || '').localeCompare(String(b.title || ''), 'fr'); });
+    LC_ecrireFichierGithub_('assets/pages/index.json', JSON.stringify(index, null, 2) + '\n', 'Met à jour l’index des pages', currentIndex && currentIndex.sha);
+    return {
+      slug: slug,
+      url: 'https://loucodi.fr/page.html?page=' + encodeURIComponent(slug),
+      commit: writtenPage.commit && writtenPage.commit.sha ? String(writtenPage.commit.sha) : ''
+    };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function enregistrerProduit(payload) {
