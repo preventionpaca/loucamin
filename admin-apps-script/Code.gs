@@ -1,4 +1,4 @@
-const LC_ADMIN_VERSION = '1.0.0-alpha.5';
+const LC_ADMIN_VERSION = '1.1.0';
 // Dans Grist, la table affichée « Administrateurs » conserve l'identifiant technique Table1.
 const LC_ADMIN_TABLE = 'Table1';
 const LC_PRODUCTS_TABLE = 'Produits';
@@ -210,7 +210,80 @@ function chargerAdministration() {
   const produits = (result.records || []).map(LC_vueProduit_).sort(function(a, b) {
     return a.ordre - b.ordre || a.titre.localeCompare(b.titre, 'fr');
   });
-  return {version: LC_ADMIN_VERSION, administrateur: admin, produits: produits};
+  return {
+    version: LC_ADMIN_VERSION,
+    administrateur: admin,
+    produits: produits,
+    publicationAccueilConfiguree: Boolean(String(PropertiesService.getScriptProperties().getProperty('LC_GITHUB_TOKEN') || '').trim())
+  };
+}
+
+function LC_github_(method, path, body) {
+  const properties = PropertiesService.getScriptProperties();
+  const token = String(properties.getProperty('LC_GITHUB_TOKEN') || '').trim();
+  if (!token) throw new Error('La publication GitHub n’est pas encore configurée dans cette administration.');
+  const repository = String(properties.getProperty('LC_GITHUB_REPOSITORY') || 'preventionpaca/loucamin').trim();
+  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)) throw new Error('Le dépôt GitHub configuré est invalide.');
+  const options = {
+    method: method,
+    muteHttpExceptions: true,
+    headers: {
+      Authorization: 'Bearer ' + token,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  };
+  if (body !== undefined) {
+    options.contentType = 'application/json';
+    options.payload = JSON.stringify(body);
+  }
+  const response = UrlFetchApp.fetch('https://api.github.com/repos/' + repository + path, options);
+  const status = response.getResponseCode();
+  if (status < 200 || status >= 300) throw new Error('Publication GitHub refusée (' + status + '). Vérifiez la liaison sécurisée.');
+  return JSON.parse(response.getContentText() || '{}');
+}
+
+function LC_nombreReglage_(value, minimum, maximum, fallback) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.max(minimum, Math.min(maximum, number));
+}
+
+function publierReglageAccueil(payload) {
+  const admin = LC_contexteAdministrateur_();
+  if (!admin.peutModifier) throw new Error('Ce compte dispose uniquement d’un accès en lecture.');
+  payload = payload || {};
+  const themes = ['jour','nuit','pins','rivage','coquelicots','etoiles','vignoble','village','chateau','vaches'];
+  const theme = LC_nettoyer_(payload.fond, 30);
+  if (themes.indexOf(theme) === -1) throw new Error('Le fond indiqué est inconnu.');
+  const source = payload.reglages || {};
+  const limits = {
+    '--brand-x':[-900,900,0],'--brand-y':[-700,700,0],'--brand-w':[280,1000,610],'--brand-h':[80,500,126],
+    '--intro-x':[-900,900,0],'--intro-y':[-700,700,0],'--intro-w':[320,1500,960],'--intro-h':[80,700,180],
+    '--cards-x':[-900,900,0],'--cards-y':[-700,700,0],'--cards-w':[660,1500,960],'--cards-h':[135,700,148],
+    '--bg-zoom':[1,1.45,1],'--bg-x':[0,100,50],'--bg-y':[0,100,50],'--bg-sat':[.7,1.7,1],
+    '--bg-contrast':[.7,1.5,1],'--bg-bright':[.6,1.25,1],'--sky-blue':[0,.45,0]
+  };
+  const clean = {};
+  Object.keys(limits).forEach(function(name) {
+    const limit = limits[name];
+    clean[name] = LC_nombreReglage_(source[name], limit[0], limit[1], limit[2]);
+  });
+
+  const filePath = '/contents/assets/accueil-layouts.json';
+  const current = LC_github_('get', filePath + '?ref=main');
+  const decoded = Utilities.newBlob(Utilities.base64Decode(String(current.content || '').replace(/\s/g,''))).getDataAsString('UTF-8');
+  let layouts = {};
+  try { layouts = JSON.parse(decoded || '{}'); } catch (error) { layouts = {}; }
+  layouts[theme] = clean;
+  const content = Utilities.base64Encode(Utilities.newBlob(JSON.stringify(layouts, null, 2) + '\n','application/json').getBytes());
+  const updated = LC_github_('put', filePath, {
+    message: 'Met à jour la mise en page de l’accueil',
+    content: content,
+    sha: current.sha,
+    branch: 'main'
+  });
+  return {fond: theme, commit: updated.commit && updated.commit.sha ? String(updated.commit.sha) : ''};
 }
 
 function enregistrerProduit(payload) {

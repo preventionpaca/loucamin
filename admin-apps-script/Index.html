@@ -38,6 +38,16 @@
         <div class="actions"><button type="submit">Enregistrer</button><button id="cancel" type="button" class="secondary">Annuler</button></div>
       </form>
     </section>
+    <section class="panel homepagePanel" id="homepagePanel">
+      <h2>Mise en page de l’accueil</h2>
+      <p>Ouvrez l’atelier sécurisé, réglez chaque fond, puis copiez ici les réglages à publier.</p>
+      <a class="primaryLink" href="https://loucodi.fr/propositions-accueil.html?edition=1" target="_blank" rel="noopener">Ouvrir l’atelier visuel</a>
+      <label>Réglages copiés depuis l’atelier
+        <textarea id="layoutPayload" rows="7" placeholder='{"fond":"jour","reglages":{…}}'></textarea>
+      </label>
+      <button id="publishLayout" type="button">Publier ce réglage</button>
+      <p class="publicationHelp" id="publicationHelp"></p>
+    </section>
   </main>
   <?!= LC_include_('Scripts'); ?>
 </body>

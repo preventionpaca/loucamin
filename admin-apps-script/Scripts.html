@@ -26,13 +26,23 @@ function openEditor(product={}){
 }
 function load(){
   status('Chargement…');
-  google.script.run.withSuccessHandler(data=>{state.products=data.produits;state.canEdit=data.administrateur.peutModifier;byId('identity').textContent=data.administrateur.nom+' — '+data.administrateur.email;byId('newProduct').hidden=!state.canEdit;status('');render();}).withFailureHandler(fail).chargerAdministration();
+  google.script.run.withSuccessHandler(data=>{state.products=data.produits;state.canEdit=data.administrateur.peutModifier;byId('identity').textContent=data.administrateur.nom+' — '+data.administrateur.email;byId('newProduct').hidden=!state.canEdit;byId('publishLayout').hidden=!state.canEdit;byId('publishLayout').disabled=!data.publicationAccueilConfiguree;byId('publicationHelp').textContent=data.publicationAccueilConfiguree?'La publication crée une modification traçable dans le dépôt du site.':'La liaison de publication GitHub doit être configurée dans les propriétés sécurisées de l’administration.';status('');render();}).withFailureHandler(fail).chargerAdministration();
 }
 byId('newProduct').addEventListener('click',()=>openEditor());
 byId('cancel').addEventListener('click',()=>{byId('editor').hidden=true;});
 byId('productForm').addEventListener('submit',event=>{
   event.preventDefault();const form=event.currentTarget;const payload=Object.fromEntries(new FormData(form));payload.visible=form.elements.visible.checked;payload.id=Number(payload.id||0);payload.ordre=Number(payload.ordre||0);status('Enregistrement…');
   google.script.run.withSuccessHandler(()=>{byId('editor').hidden=true;load();}).withFailureHandler(fail).enregistrerProduit(payload);
+});
+byId('publishLayout').addEventListener('click',()=>{
+  const raw=byId('layoutPayload').value.trim();
+  if(!raw){status('Collez d’abord les réglages copiés depuis l’atelier.');return;}
+  let payload;
+  try{payload=JSON.parse(raw);}catch(error){status('Les réglages collés ne sont pas un JSON valide.');return;}
+  if(!confirm('Publier la mise en page du fond « '+String(payload.fond||'inconnu')+' » sur le site ?'))return;
+  status('Publication en cours…');
+  byId('publishLayout').disabled=true;
+  google.script.run.withSuccessHandler(result=>{status('Réglage publié. Le site sera actualisé après le déploiement GitHub Pages.');byId('layoutPayload').value='';byId('publishLayout').disabled=false;}).withFailureHandler(error=>{byId('publishLayout').disabled=false;fail(error);}).publierReglageAccueil(payload);
 });
 load();
 </script>

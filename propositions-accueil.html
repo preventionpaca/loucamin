@@ -495,9 +495,34 @@ body.editing .cards{
   outline:2px dashed rgba(255,230,0,.95);
   outline-offset:5px;
   cursor:move;
-  resize:both;
   overflow:hidden;
   touch-action:none
+}
+
+.resize-handle{
+  position:absolute;
+  right:-1px;
+  bottom:-1px;
+  z-index:8;
+  width:24px;
+  height:24px;
+  border:2px solid #061d4d;
+  border-radius:7px 0 0 0;
+  background:#ffe100;
+  box-shadow:0 0 0 2px rgba(255,255,255,.85);
+  cursor:nwse-resize;
+  touch-action:none
+}
+
+.resize-handle::before{
+  content:"↘";
+  display:grid;
+  place-items:center;
+  width:100%;
+  height:100%;
+  color:#061d4d;
+  font-size:16px;
+  font-weight:900
 }
 
 body.editing .brand::after,
@@ -702,7 +727,9 @@ const layoutParts = {
 };
 const layoutVars = ['--brand-x','--brand-y','--brand-w','--brand-h','--intro-x','--intro-y','--intro-w','--intro-h','--cards-x','--cards-y','--cards-w','--cards-h','--bg-zoom','--bg-x','--bg-y','--bg-sat','--bg-contrast','--bg-bright','--sky-blue'];
 const layoutUnits = {'--bg-zoom':'','--bg-x':'%','--bg-y':'%','--bg-sat':'','--bg-contrast':'','--bg-bright':'','--sky-blue':''};
+const photoDefaults = {'--bg-zoom':1,'--bg-x':50,'--bg-y':50,'--bg-sat':1,'--bg-contrast':1,'--bg-bright':1,'--sky-blue':0};
 let previewPhotoUrl = '';
+let publishedLayouts = {};
 const initialTheme = allowedThemes.includes(requestedTheme)
   ? requestedTheme
   : (allowedThemes.includes(savedTheme) ? savedTheme : 'jour');
@@ -738,7 +765,8 @@ function layoutKey(theme) {
 }
 
 function pxValue(name) {
-  return parseFloat(getComputedStyle(body).getPropertyValue(name)) || 0;
+  const parsed = parseFloat(getComputedStyle(body).getPropertyValue(name));
+  return Number.isFinite(parsed) ? parsed : (photoDefaults[name] ?? 0);
 }
 
 function setLayoutValue(name,value) {
@@ -747,11 +775,20 @@ function setLayoutValue(name,value) {
 
 function applySavedLayout(theme) {
   try {
-    const saved = JSON.parse(localStorage.getItem(layoutKey(theme)) || 'null');
+    const local = JSON.parse(localStorage.getItem(layoutKey(theme)) || 'null');
+    const saved = local || publishedLayouts[theme] || null;
     if (!saved) return;
+    let repaired = false;
     Object.entries(saved).forEach(([name,value]) => {
-      if (layoutVars.includes(name) && Number.isFinite(value)) setLayoutValue(name,value);
+      if (!layoutVars.includes(name) || !Number.isFinite(value)) return;
+      if (['--bg-zoom','--bg-sat','--bg-contrast','--bg-bright'].includes(name) && value <= 0) {
+        setLayoutValue(name,photoDefaults[name]);
+        repaired = true;
+        return;
+      }
+      setLayoutValue(name,value);
     });
+    if (repaired) localStorage.setItem(layoutKey(theme),JSON.stringify(captureCurrentLayout()));
   } catch (error) {
     localStorage.removeItem(layoutKey(theme));
   }
@@ -795,6 +832,13 @@ function syncEditorControls() {
 
 setTheme(initialTheme, false);
 themeButtons.forEach(button => button.addEventListener('click', () => setTheme(button.dataset.theme, true)));
+fetch('assets/accueil-layouts.json',{cache:'no-store'})
+  .then(response => response.ok ? response.json() : {})
+  .then(data => {
+    publishedLayouts = data && typeof data === 'object' ? data : {};
+    setTheme(body.dataset.ambiance,false);
+  })
+  .catch(() => {});
 
 if (editing) {
   body.classList.add('editing');
@@ -824,6 +868,36 @@ if (editing) {
       part.addEventListener('pointermove',move);
       part.addEventListener('pointerup',stop,{once:true});
       part.addEventListener('pointercancel',stop,{once:true});
+    });
+
+    const handle = document.createElement('span');
+    handle.className = 'resize-handle';
+    handle.setAttribute('aria-label','Redimensionner ' + name);
+    part.append(handle);
+    handle.addEventListener('pointerdown',event => {
+      event.preventDefault();
+      event.stopPropagation();
+      handle.setPointerCapture(event.pointerId);
+      const rect = part.getBoundingClientRect();
+      const startX = event.clientX;
+      const startY = event.clientY;
+      const startWidth = rect.width;
+      const startHeight = rect.height;
+      const minWidth = name === 'cards' ? 660 : 320;
+      const minHeight = name === 'cards' ? 135 : 90;
+      status.textContent = 'Redimensionnement de ' + name;
+
+      const resize = moveEvent => {
+        setLayoutValue('--' + name + '-w',Math.max(minWidth,startWidth + moveEvent.clientX - startX));
+        setLayoutValue('--' + name + '-h',Math.max(minHeight,startHeight + moveEvent.clientY - startY));
+      };
+      const stopResize = () => {
+        handle.removeEventListener('pointermove',resize);
+        status.textContent = 'À enregistrer';
+      };
+      handle.addEventListener('pointermove',resize);
+      handle.addEventListener('pointerup',stopResize,{once:true});
+      handle.addEventListener('pointercancel',stopResize,{once:true});
     });
   });
 
