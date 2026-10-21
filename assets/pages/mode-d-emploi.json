@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "slug": "mode-d-emploi",
+  "title": "Mode d'emploi",
+  "introduction": "Mode d'emploi : -PDF studio-Loucodi document studio-Loucodi découpe",
+  "published": true,
+  "updatedAt": "2026-10-21T19:54:27.947Z",
+  "blocks": [
+    {
+      "id": "bloc-1",
+      "type": "text",
+      "width": "third",
+      "title": "Mode d'emploi PDF studio",
+      "content": "PDF studio"
+    },
+    {
+      "id": "bloc-2",
+      "type": "text",
+      "width": "third",
+      "title": "Mode d'emploi Loucodi document studio",
+      "content": "**Loucodi document studio**"
+    },
+    {
+      "id": "bloc-3",
+      "type": "text",
+      "width": "third",
+      "title": "Loucodi découpe",
+      "content": "*Loucodi découpe*"
+    }
+  ]
+}
