@@ -1,4 +1,4 @@
-const LC_ADMIN_VERSION = '1.4.0';
+const LC_ADMIN_VERSION = '1.4.1';
 // Dans Grist, la table affichée « Administrateurs » conserve l'identifiant technique Table1.
 const LC_ADMIN_TABLE = 'Table1';
 const LC_PRODUCTS_TABLE = 'Produits';
@@ -383,7 +383,11 @@ function chargerContenuPageSite(slug) {
 function publierPageSite(payload) {
   const admin = LC_contexteAdministrateur_();
   if (!admin.peutModifier) throw new Error('Ce compte dispose uniquement d’un accès en lecture.');
-  payload = payload || {};
+  if (typeof payload === 'string') {
+    try { payload = JSON.parse(payload); }
+    catch (error) { throw new Error('Les données de la page sont illisibles. Rechargez l’administration puis réessayez.'); }
+  }
+  payload = payload && typeof payload === 'object' ? payload : {};
   const slug = LC_slugPage_(payload.slug);
   const title = LC_nettoyer_(payload.title, 180);
   if (!title) throw new Error('Le titre de la page est obligatoire.');
