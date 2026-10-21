@@ -35,14 +35,21 @@ byId('productForm').addEventListener('submit',event=>{
   google.script.run.withSuccessHandler(()=>{byId('editor').hidden=true;load();}).withFailureHandler(fail).enregistrerProduit(payload);
 });
 byId('publishLayout').addEventListener('click',()=>{
+  const publicationStatus=byId('publicationStatus');
+  publicationStatus.classList.remove('error');
   const raw=byId('layoutPayload').value.trim();
-  if(!raw){status('Collez d’abord les réglages copiés depuis l’atelier.');return;}
+  if(!raw){publicationStatus.textContent='Collez d’abord les réglages copiés depuis l’atelier.';publicationStatus.classList.add('error');return;}
   let payload;
-  try{payload=JSON.parse(raw);}catch(error){status('Les réglages collés ne sont pas un JSON valide.');return;}
-  if(!confirm('Publier la mise en page du fond « '+String(payload.fond||'inconnu')+' » sur le site ?'))return;
-  status('Publication en cours…');
+  try{payload=JSON.parse(raw);}catch(error){
+    try{payload=JSON.parse('['+raw.replace(/}\s*{/g,'},{')+']');}
+    catch(secondError){publicationStatus.textContent='Les réglages collés ne sont pas un JSON valide.';publicationStatus.classList.add('error');return;}
+  }
+  const payloads=Array.isArray(payload)?payload:[payload];
+  if(!payloads.length){publicationStatus.textContent='Aucun réglage à publier.';publicationStatus.classList.add('error');return;}
+  if(!confirm('Publier les réglages de '+payloads.length+' fond'+(payloads.length>1?'s':'')+' sur le site ?'))return;
+  publicationStatus.textContent='Publication en cours…';
   byId('publishLayout').disabled=true;
-  google.script.run.withSuccessHandler(result=>{status('Réglage publié. Le site sera actualisé après le déploiement GitHub Pages.');byId('layoutPayload').value='';byId('publishLayout').disabled=false;}).withFailureHandler(error=>{byId('publishLayout').disabled=false;fail(error);}).publierReglageAccueil(payload);
+  google.script.run.withSuccessHandler(result=>{const count=Number(result.nombre||payloads.length);publicationStatus.textContent=count+' fond'+(count>1?'s':'')+' publié'+(count>1?'s':'')+'. Le site sera actualisé après le déploiement GitHub Pages.';byId('layoutPayload').value='';byId('publishLayout').disabled=false;}).withFailureHandler(error=>{byId('publishLayout').disabled=false;publicationStatus.textContent=error&&error.message?error.message:String(error||'Erreur inconnue.');publicationStatus.classList.add('error');}).publierReglageAccueil(payloads);
 });
 load();
 </script>
