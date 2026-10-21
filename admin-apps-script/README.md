@@ -24,8 +24,12 @@ image et vignette avec les API DOM sûres du navigateur.
 - La largeur `entière`, `moitié` ou `tiers` organise la grille sur ordinateur.
 - Sur téléphone, tous les blocs sont automatiquement empilés.
 - Une vignette peut être repliée ou dépliée par défaut.
-- Les médias acceptent une URL `https://` ou un chemin `assets/` déjà présent
-  dans le dépôt. Le téléversement de fichiers reste volontairement séparé.
+- Les pages peuvent être dépubliées, republiées ou supprimées depuis la liste.
+- Le petit éditeur insère du gras, de l’italique, des listes et des liens dans
+  les introductions et contenus, avec un rendu public sans HTML arbitraire.
+- Les médias acceptent une URL `https://`, un chemin `assets/` déjà présent
+  dans le dépôt, ou un fichier PNG, JPEG, WebP ou GIF choisi sur le disque
+  (4 Mo maximum), ensuite copié dans `assets/pages/media/` sur GitHub.
 
 L’index `assets/pages/index.json` permet à l’administration de retrouver les
 pages déjà publiées. Le même jeton GitHub à permission `Contents: Read and

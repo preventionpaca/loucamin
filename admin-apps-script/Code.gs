@@ -1,4 +1,4 @@
-const LC_ADMIN_VERSION = '1.3.0';
+const LC_ADMIN_VERSION = '1.4.0';
 // Dans Grist, la table affichée « Administrateurs » conserve l'identifiant technique Table1.
 const LC_ADMIN_TABLE = 'Table1';
 const LC_PRODUCTS_TABLE = 'Produits';
@@ -363,7 +363,7 @@ function chargerPagesSite() {
   try {
     const parsed = JSON.parse(current.text || '{}');
     return Array.isArray(parsed.pages) ? parsed.pages.map(function(page) {
-      return {slug: LC_slugPage_(page.slug), title: LC_nettoyer_(page.title, 180), updatedAt: LC_nettoyer_(page.updatedAt, 50)};
+      return {slug: LC_slugPage_(page.slug), title: LC_nettoyer_(page.title, 180), updatedAt: LC_nettoyer_(page.updatedAt, 50), published: page.published !== false};
     }) : [];
   } catch (error) {
     throw new Error('L’index des pages du site est invalide.');
@@ -395,6 +395,7 @@ function publierPageSite(payload) {
     slug: slug,
     title: title,
     introduction: LC_nettoyer_(payload.introduction, 3000),
+    published: payload.published !== false,
     updatedAt: now,
     blocks: inputBlocks.map(LC_nettoyerBlocPage_)
   };
@@ -410,7 +411,7 @@ function publierPageSite(payload) {
       try { index = JSON.parse(currentIndex.text || '{}'); } catch (error) { index = {pages: []}; }
     }
     if (!Array.isArray(index.pages)) index.pages = [];
-    const entry = {slug: slug, title: title, updatedAt: now};
+    const entry = {slug: slug, title: title, updatedAt: now, published: page.published};
     const existing = index.pages.findIndex(function(item) { return item && item.slug === slug; });
     if (existing === -1) index.pages.push(entry); else index.pages[existing] = entry;
     index.pages.sort(function(a, b) { return String(a.title || '').localeCompare(String(b.title || ''), 'fr'); });
@@ -423,6 +424,76 @@ function publierPageSite(payload) {
   } finally {
     lock.releaseLock();
   }
+}
+
+function LC_indexPages_() {
+  const current = LC_lireFichierGithub_('assets/pages/index.json');
+  let index = {pages: []};
+  if (current) {
+    try { index = JSON.parse(current.text || '{}'); } catch (error) { throw new Error('L’index des pages du site est invalide.'); }
+  }
+  if (!Array.isArray(index.pages)) index.pages = [];
+  return {current: current, value: index};
+}
+
+function changerPublicationPageSite(slug, published) {
+  const admin = LC_contexteAdministrateur_();
+  if (!admin.peutModifier) throw new Error('Ce compte dispose uniquement d’un accès en lecture.');
+  const cleanSlug = LC_slugPage_(slug);
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) throw new Error('Une autre publication est en cours. Réessayez.');
+  try {
+    const pagePath = 'assets/pages/' + cleanSlug + '.json';
+    const currentPage = LC_lireFichierGithub_(pagePath);
+    if (!currentPage) throw new Error('Cette page est introuvable.');
+    let page;
+    try { page = JSON.parse(currentPage.text || '{}'); } catch (error) { throw new Error('Le contenu de cette page est invalide.'); }
+    page.published = published === true;
+    page.updatedAt = new Date().toISOString();
+    LC_ecrireFichierGithub_(pagePath, JSON.stringify(page, null, 2) + '\n', page.published ? 'Publie la page « ' + page.title + ' »' : 'Dépublie la page « ' + page.title + ' »', currentPage.sha);
+    const indexed = LC_indexPages_();
+    const entry = indexed.value.pages.find(function(item) { return item && item.slug === cleanSlug; });
+    if (entry) { entry.published = page.published; entry.updatedAt = page.updatedAt; }
+    LC_ecrireFichierGithub_('assets/pages/index.json', JSON.stringify(indexed.value, null, 2) + '\n', 'Met à jour la visibilité de la page « ' + page.title + ' »', indexed.current && indexed.current.sha);
+    return {slug: cleanSlug, published: page.published};
+  } finally { lock.releaseLock(); }
+}
+
+function supprimerPageSite(slug) {
+  const admin = LC_contexteAdministrateur_();
+  if (!admin.peutModifier) throw new Error('Ce compte dispose uniquement d’un accès en lecture.');
+  const cleanSlug = LC_slugPage_(slug);
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) throw new Error('Une autre publication est en cours. Réessayez.');
+  try {
+    const pagePath = 'assets/pages/' + cleanSlug + '.json';
+    const currentPage = LC_lireFichierGithub_(pagePath);
+    if (!currentPage) throw new Error('Cette page est introuvable.');
+    LC_github_('delete', '/contents/' + pagePath, {message: 'Supprime la page « ' + cleanSlug + ' »', sha: currentPage.sha, branch: 'main'});
+    const indexed = LC_indexPages_();
+    indexed.value.pages = indexed.value.pages.filter(function(item) { return !item || item.slug !== cleanSlug; });
+    LC_ecrireFichierGithub_('assets/pages/index.json', JSON.stringify(indexed.value, null, 2) + '\n', 'Retire la page « ' + cleanSlug + ' » de l’index', indexed.current && indexed.current.sha);
+    return {slug: cleanSlug};
+  } finally { lock.releaseLock(); }
+}
+
+function publierMediaPageSite(payload) {
+  const admin = LC_contexteAdministrateur_();
+  if (!admin.peutModifier) throw new Error('Ce compte dispose uniquement d’un accès en lecture.');
+  payload = payload || {};
+  const types = {'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif'};
+  const mime = LC_nettoyer_(payload.mime, 80).toLowerCase();
+  if (!types[mime]) throw new Error('Format refusé. Utilisez PNG, JPEG, WebP ou GIF.');
+  const encoded = String(payload.data || '').replace(/^data:[^;]+;base64,/, '').replace(/\s/g, '');
+  if (!encoded || encoded.length > 5600000) throw new Error('L’image est vide ou dépasse la limite de 4 Mo.');
+  let bytes;
+  try { bytes = Utilities.base64Decode(encoded); } catch (error) { throw new Error('Le fichier image est illisible.'); }
+  if (bytes.length > 4 * 1024 * 1024) throw new Error('L’image dépasse la limite de 4 Mo.');
+  const baseName = LC_nettoyer_(payload.name, 120).replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'image';
+  const unique = Utilities.formatDate(new Date(), 'UTC', 'yyyyMMdd-HHmmss') + '-' + Utilities.getUuid().slice(0, 8) + '-' + baseName.slice(0, 60) + '.' + types[mime];
+  const path = 'assets/pages/media/' + unique;
+  LC_github_('put', '/contents/' + path, {message: 'Ajoute une image pour les pages du site', content: Utilities.base64Encode(bytes), branch: 'main'});
+  return {path: path, url: 'https://loucodi.fr/' + path};
 }
 
 function enregistrerProduit(payload) {
