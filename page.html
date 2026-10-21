@@ -23,7 +23,7 @@ footer{background:var(--navy);color:#fff;padding:13px 5vw;display:flex;justify-c
 <body>
 <header>
   <a class="brand" href="index.html" aria-label="Lou Còdi — Accueil"><img src="assets/logo-rond-lou-codi.png" alt=""><span class="brand-copy"><span class="brand-name">Lou Còdi</span><span class="brand-subtitle">Club de programmation<span class="brand-region">OCCITANIE · CÔTE D’AZUR</span></span></span></a>
-  <nav class="breadcrumb" aria-label="Fil d’Ariane"><a href="index.html">Accueil</a><span>›</span><a href="pages.html">Pages</a><span>›</span><span id="crumb" aria-current="page">Page</span></nav>
+  <nav class="breadcrumb" id="breadcrumb" aria-label="Fil d’Ariane"><a href="index.html">Accueil</a><span>›</span><span id="crumb" aria-current="page">Page</span></nav>
 </header>
 <main id="main"><p class="empty">Chargement de la page…</p></main>
 <footer><span><strong>Lou Còdi</strong> · Projet indépendant</span><a href="pages.html">← Retour aux pages</a></footer>
@@ -53,7 +53,8 @@ function renderPage(page){
   if(page.published===false)throw new Error('Page dépubliée');const intro=document.createElement('section');intro.className='intro';intro.append(text('h1',page.title||'Sans titre'));if(page.introduction)intro.append(rich(page.introduction));main.append(intro);
   const blocks=document.createElement('div');blocks.className='blocks';(Array.isArray(page.blocks)?page.blocks:[]).forEach(block=>{const node=renderBlock(block||{});if(node)blocks.append(node)});main.append(blocks);if(!blocks.children.length)blocks.append(text('p','Cette page ne contient encore aucun bloc.','empty'));
 }
-if(!/^[a-z0-9][a-z0-9-]{0,79}$/.test(slug)){main.innerHTML='<p class="error">Adresse de page invalide.</p>'}else fetch('assets/pages/'+slug+'.json',{cache:'no-store'}).then(response=>{if(!response.ok)throw new Error('Page introuvable');return response.json()}).then(renderPage).catch(()=>{main.innerHTML='<p class="error">Cette page est introuvable ou n’est pas encore publiée.</p>'});
+function renderBreadcrumb(page,index){const nav=document.getElementById('breadcrumb');const bySlug=new Map((Array.isArray(index&&index.pages)?index.pages:[]).map(item=>[item.slug,item]));const chain=[];let current=page;const seen=new Set();while(current&&current.parentSlug&&!seen.has(current.parentSlug)){seen.add(current.parentSlug);const parent=bySlug.get(current.parentSlug);if(!parent)break;chain.unshift(parent);current=parent}nav.replaceChildren();const home=text('a','Accueil');home.href='index.html';nav.append(home);chain.forEach(parent=>{nav.append(text('span','›'));const link=text('a',parent.title);link.href='page.html?page='+encodeURIComponent(parent.slug);nav.append(link)});nav.append(text('span','›'));const currentNode=text('span',page.title||'Page');currentNode.id='crumb';currentNode.setAttribute('aria-current','page');nav.append(currentNode)}
+if(!/^[a-z0-9][a-z0-9-]{0,79}$/.test(slug)){main.innerHTML='<p class="error">Adresse de page invalide.</p>'}else Promise.all([fetch('assets/pages/'+slug+'.json',{cache:'no-store'}).then(response=>{if(!response.ok)throw new Error('Page introuvable');return response.json()}),fetch('assets/pages/index.json',{cache:'no-store'}).then(response=>response.ok?response.json():({pages:[]})).catch(()=>({pages:[]}))]).then(([page,index])=>{renderPage(page);renderBreadcrumb(page,index)}).catch(()=>{main.innerHTML='<p class="error">Cette page est introuvable ou n’est pas encore publiée.</p>'});
 </script>
 </body>
 </html>

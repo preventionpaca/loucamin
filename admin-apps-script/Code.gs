@@ -363,7 +363,7 @@ function chargerPagesSite() {
   try {
     const parsed = JSON.parse(current.text || '{}');
     return Array.isArray(parsed.pages) ? parsed.pages.map(function(page) {
-      return {slug: LC_slugPage_(page.slug), title: LC_nettoyer_(page.title, 180), updatedAt: LC_nettoyer_(page.updatedAt, 50), published: page.published !== false};
+      return {slug: LC_slugPage_(page.slug), title: LC_nettoyer_(page.title, 180), parentSlug: page.parentSlug ? LC_slugPage_(page.parentSlug) : '', updatedAt: LC_nettoyer_(page.updatedAt, 50), published: page.published !== false};
     }) : [];
   } catch (error) {
     throw new Error('L’index des pages du site est invalide.');
@@ -390,7 +390,9 @@ function publierPageSite(payload) {
   payload = payload && typeof payload === 'object' ? payload : {};
   const slug = LC_slugPage_(payload.slug);
   const title = LC_nettoyer_(payload.title, 180);
+  const parentSlug = payload.parentSlug ? LC_slugPage_(payload.parentSlug) : '';
   if (!title) throw new Error('Le titre de la page est obligatoire.');
+  if (parentSlug === slug) throw new Error('Une page ne peut pas être sa propre page parente.');
   const inputBlocks = Array.isArray(payload.blocks) ? payload.blocks : [];
   if (inputBlocks.length > 60) throw new Error('Une page ne peut pas dépasser 60 blocs.');
   const now = new Date().toISOString();
@@ -398,6 +400,7 @@ function publierPageSite(payload) {
     schemaVersion: 1,
     slug: slug,
     title: title,
+    parentSlug: parentSlug,
     introduction: LC_nettoyer_(payload.introduction, 3000),
     published: payload.published !== false,
     updatedAt: now,
@@ -415,7 +418,16 @@ function publierPageSite(payload) {
       try { index = JSON.parse(currentIndex.text || '{}'); } catch (error) { index = {pages: []}; }
     }
     if (!Array.isArray(index.pages)) index.pages = [];
-    const entry = {slug: slug, title: title, updatedAt: now, published: page.published};
+    if (parentSlug && !index.pages.some(function(item) { return item && item.slug === parentSlug; })) throw new Error('La page parente choisie est introuvable.');
+    let cursor = parentSlug;
+    const visited = {};
+    while (cursor) {
+      if (cursor === slug || visited[cursor]) throw new Error('Cette organisation créerait une boucle dans le menu.');
+      visited[cursor] = true;
+      const parentEntry = index.pages.find(function(item) { return item && item.slug === cursor; });
+      cursor = parentEntry && parentEntry.parentSlug ? String(parentEntry.parentSlug) : '';
+    }
+    const entry = {slug: slug, title: title, parentSlug: parentSlug, updatedAt: now, published: page.published};
     const existing = index.pages.findIndex(function(item) { return item && item.slug === slug; });
     if (existing === -1) index.pages.push(entry); else index.pages[existing] = entry;
     index.pages.sort(function(a, b) { return String(a.title || '').localeCompare(String(b.title || ''), 'fr'); });
@@ -473,8 +485,10 @@ function supprimerPageSite(slug) {
     const pagePath = 'assets/pages/' + cleanSlug + '.json';
     const currentPage = LC_lireFichierGithub_(pagePath);
     if (!currentPage) throw new Error('Cette page est introuvable.');
-    LC_github_('delete', '/contents/' + pagePath, {message: 'Supprime la page « ' + cleanSlug + ' »', sha: currentPage.sha, branch: 'main'});
     const indexed = LC_indexPages_();
+    const children = indexed.value.pages.filter(function(item) { return item && item.parentSlug === cleanSlug; });
+    if (children.length) throw new Error('Cette page contient des sous-pages. Déplacez-les ou supprimez-les d’abord.');
+    LC_github_('delete', '/contents/' + pagePath, {message: 'Supprime la page « ' + cleanSlug + ' »', sha: currentPage.sha, branch: 'main'});
     indexed.value.pages = indexed.value.pages.filter(function(item) { return !item || item.slug !== cleanSlug; });
     LC_ecrireFichierGithub_('assets/pages/index.json', JSON.stringify(indexed.value, null, 2) + '\n', 'Retire la page « ' + cleanSlug + ' » de l’index', indexed.current && indexed.current.sha);
     return {slug: cleanSlug};
