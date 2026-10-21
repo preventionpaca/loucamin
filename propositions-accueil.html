@@ -774,7 +774,7 @@ function setLayoutValue(name,value) {
 
 function applySavedLayout(theme) {
   try {
-    const local = JSON.parse(localStorage.getItem(layoutKey(theme)) || 'null');
+    const local = editing ? JSON.parse(localStorage.getItem(layoutKey(theme)) || 'null') : null;
     const saved = local || publishedLayouts[theme] || null;
     if (!saved) return;
     let repaired = false;
