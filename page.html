@@ -23,10 +23,10 @@ footer{background:var(--navy);color:#fff;padding:13px 5vw;display:flex;justify-c
 <body>
 <header>
   <a class="brand" href="index.html" aria-label="Lou Còdi — Accueil"><img src="assets/logo-rond-lou-codi.png" alt=""><span class="brand-copy"><span class="brand-name">Lou Còdi</span><span class="brand-subtitle">Club de programmation<span class="brand-region">OCCITANIE · CÔTE D’AZUR</span></span></span></a>
-  <nav class="breadcrumb" aria-label="Fil d’Ariane"><a href="index.html">Accueil</a><span>›</span><a href="projets.html">Projets</a><span>›</span><span id="crumb" aria-current="page">Page</span></nav>
+  <nav class="breadcrumb" aria-label="Fil d’Ariane"><a href="index.html">Accueil</a><span>›</span><a href="projets.html#pages">Pages</a><span>›</span><span id="crumb" aria-current="page">Page</span></nav>
 </header>
 <main id="main"><p class="empty">Chargement de la page…</p></main>
-<footer><span><strong>Lou Còdi</strong> · Projet indépendant</span><a href="projets.html">← Retour aux projets</a></footer>
+<footer><span><strong>Lou Còdi</strong> · Projet indépendant</span><a href="projets.html#pages">← Retour aux pages</a></footer>
 <script>
 const main=document.getElementById('main');
 const slug=(new URLSearchParams(location.search).get('page')||'').toLowerCase();
