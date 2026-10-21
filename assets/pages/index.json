@@ -5,6 +5,13 @@
       "title": "Mode d'emploi",
       "updatedAt": "2026-10-21T21:00:32.666Z",
       "published": true
+    },
+    {
+      "slug": "tes",
+      "title": "tes",
+      "parentSlug": "mode-d-emploi",
+      "updatedAt": "2026-10-21T21:45:06.048Z",
+      "published": true
     }
   ]
 }
