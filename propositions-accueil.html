@@ -659,6 +659,7 @@ textarea{min-height:125px;resize:vertical}
   <label class="photo-picker">Tester une nouvelle photo<input id="previewPhoto" type="file" accept="image/jpeg,image/png,image/webp"></label>
   <button id="clearPreviewPhoto" type="button">Revenir à la photo du site</button>
   <button id="saveLayout" type="button">Enregistrer ce fond</button>
+  <button id="copyLayout" type="button">Copier les réglages</button>
   <button id="resetLayout" type="button">Réinitialiser ce fond</button>
   <span class="layout-status" id="layoutStatus" role="status" aria-live="polite">Glissez les cadres</span>
 </aside>
@@ -827,6 +828,16 @@ if (editing) {
   });
 
   document.getElementById('saveLayout').addEventListener('click',() => saveCurrentLayout(true));
+  document.getElementById('copyLayout').addEventListener('click',async () => {
+    saveCurrentLayout(false);
+    const payload = JSON.stringify({fond:body.dataset.ambiance,reglages:captureCurrentLayout()});
+    try {
+      await navigator.clipboard.writeText(payload);
+      status.textContent = 'Réglages copiés — colle-les dans le chat';
+    } catch (error) {
+      status.textContent = 'Copie impossible : envoie une capture d’écran';
+    }
+  });
   document.getElementById('previewPhoto').addEventListener('change',event => {
     const file = event.target.files[0];
     if (!file) return;
