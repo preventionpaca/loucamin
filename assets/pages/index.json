@@ -1,3 +1,10 @@
 {
-  "pages": []
+  "pages": [
+    {
+      "slug": "mode-d-emploi",
+      "title": "Mode d'emploi",
+      "updatedAt": "2026-10-21T19:54:27.947Z",
+      "published": true
+    }
+  ]
 }
