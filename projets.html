@@ -17,7 +17,6 @@ nav a{color:white;text-decoration:none;font-weight:800;margin-left:20px;text-sha
 main{width:min(1180px,92vw);margin:30px auto 45px}
 .intro{text-align:center;margin:0 auto 28px;max-width:780px}.intro h2{font-size:2.1rem;margin:0 0 9px;color:var(--red)}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
-.pages-section{margin-top:38px}.pages-section[hidden]{display:none}.pages-heading{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:16px}.pages-heading h2{margin:0;color:var(--red);font-size:1.7rem}.pages-heading p{margin:0;color:#506474}.page-card .shot{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#06325b,#1674a8);color:#fff;font-size:3rem;font-weight:900}.page-card .content{display:flex;min-height:180px;flex-direction:column}.page-card .actions{margin-top:auto}
 .card{background:rgba(255,255,255,.92);border-radius:18px;overflow:hidden;box-shadow:0 15px 38px #06325b29;border:1px solid #fff;backdrop-filter:blur(10px);transition:transform .18s ease,box-shadow .18s ease}
 .card:hover{transform:translateY(-3px);box-shadow:0 19px 44px #06325b38}
 .shot{aspect-ratio:16/9;background:#dceaf3;overflow:hidden}.shot img{width:100%;height:100%;object-fit:cover;display:block}
@@ -77,7 +76,7 @@ textarea{min-height:125px;resize:vertical}
    <img src="assets/logo-rond-lou-codi.png" alt="">
    <div class="brand-copy"><div class="brand-name">Lou Còdi</div><div class="brand-subtitle">Club de programmation<span class="brand-region">OCCITANIE · CÔTE D’AZUR</span></div></div>
  </div>
- <nav><a href="index.html">Accueil</a><a href="#pages">Pages</a><button class="nav-contact" id="openContact" type="button">Contact</button></nav>
+ <nav><a href="index.html">Accueil</a><a href="pages.html">Pages</a><button class="nav-contact" id="openContact" type="button">Contact</button></nav>
 </header>
 <main>
  <section class="intro">
@@ -115,10 +114,6 @@ textarea{min-height:125px;resize:vertical}
      </div>
    </article>
  </section>
- <section class="pages-section" id="pages" hidden aria-labelledby="pagesTitle">
-   <div class="pages-heading"><div><h2 id="pagesTitle">Pages</h2><p>Guides, carnets et contenus publiés par Lou Còdi.</p></div></div>
-   <div class="grid" id="publishedPages" aria-live="polite"></div>
- </section>
 </main>
 <footer><span><strong>Lou Còdi</strong> · Projet indépendant</span><nav aria-label="Liens de pied de page"><a href="https://script.google.com/macros/s/AKfycbwVhEiT8abSeVftdawk5VgABx-OCzYm6B_g91oE8AoLg5ldacUX2-wZwRGF_hMkz1Jj-A/exec">Administration</a><a href="index.html">← Retour à l’accueil</a></nav></footer>
 
@@ -151,26 +146,6 @@ const projectGrid=document.querySelector('.grid');
 Array.from(projectGrid.querySelectorAll('.card'))
   .sort((a,b)=>Number(a.dataset.order||0)-Number(b.dataset.order||0))
   .forEach(card=>projectGrid.append(card));
-const pagesSection=document.getElementById('pages');
-const publishedPages=document.getElementById('publishedPages');
-fetch('assets/pages/index.json',{cache:'no-store'})
-  .then(response=>{if(!response.ok)throw new Error('Index indisponible');return response.json()})
-  .then(data=>{
-    const pages=Array.isArray(data&&data.pages)?data.pages.filter(page=>page&&page.published!==false&&page.slug&&page.title):[];
-    if(!pages.length)return;
-    pages.forEach(page=>{
-      const article=document.createElement('article');article.className='card page-card';
-      const shot=document.createElement('div');shot.className='shot';shot.setAttribute('aria-hidden','true');shot.textContent='📄';
-      const content=document.createElement('div');content.className='content';
-      const title=document.createElement('h3');title.textContent=page.title;
-      const description=document.createElement('p');description.textContent='Consulter cette page publiée sur le site Lou Còdi.';
-      const actions=document.createElement('div');actions.className='actions';
-      const link=document.createElement('a');link.className='primary';link.href='page.html?page='+encodeURIComponent(page.slug);link.textContent='Ouvrir la page';
-      actions.append(link);content.append(title,description,actions);article.append(shot,content);publishedPages.append(article);
-    });
-    pagesSection.hidden=false;
-  })
-  .catch(()=>{});
 document.getElementById('openContact').addEventListener('click',()=>modal.classList.add('open'));
 document.getElementById('closeContact').addEventListener('click',()=>modal.classList.remove('open'));
 modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('open')});

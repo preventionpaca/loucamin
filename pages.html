@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pages — Lou Còdi</title>
+<style>
+:root{--navy:#05265c;--red:#c30b17;--gold:#ffd600;--ink:#102a43;--muted:#52677c}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0%,#d9f5fb 0,#edf6fa 34%,#f7f9fa 75%);color:var(--ink);font-family:Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{background:linear-gradient(115deg,#05265c 0%,#087fb8 50%,#12bea8 100%);color:#fff;padding:9px 5vw;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:4px solid var(--gold);box-shadow:0 10px 30px #04214a2e}
+.brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none}.brand img{width:68px;height:68px;object-fit:contain}.brand-copy{line-height:1}.brand-name{font-family:"Brush Script MT","Segoe Script",cursive;font-size:2.35rem;font-style:italic;font-weight:800}.brand-name::after{content:"";display:block;height:4px;margin:4px 0 6px;border-radius:99px;background:var(--gold);transform:skewX(-25deg) rotate(-2deg)}.brand-subtitle{font-size:.77rem;font-weight:800;letter-spacing:.04em}.brand-region{display:block;margin-top:3px;font-size:.55rem;letter-spacing:.22em}
+nav{display:flex;gap:18px;align-items:center}nav a{color:#fff;text-decoration:none;font-weight:800}
+main{width:min(1180px,92vw);margin:30px auto 48px;flex:1}.intro{text-align:center;max-width:820px;margin:0 auto 28px}.intro h1{color:var(--red);font-size:2.1rem;margin:0 0 9px}.intro p{line-height:1.55;margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}.card{background:rgba(255,255,255,.92);border:1px solid #fff;border-radius:18px;overflow:hidden;box-shadow:0 15px 38px #06325b29;display:flex;flex-direction:column}.visual{aspect-ratio:16/8;background:linear-gradient(135deg,#06325b,#1674a8);display:flex;align-items:center;justify-content:center;color:#fff;font-size:3.2rem}.content{padding:19px;display:flex;flex:1;flex-direction:column}.content h2{margin:0 0 9px;color:var(--navy);font-size:1.2rem}.content p{margin:0 0 18px;color:var(--muted);line-height:1.5}.content a{margin-top:auto;align-self:flex-start;background:var(--navy);color:#fff;text-decoration:none;font-weight:800;border-radius:9px;padding:10px 13px}.empty,.error{grid-column:1/-1;padding:28px;background:#fff;border-radius:16px;text-align:center}.error{color:#9e1021}
+footer{background:var(--navy);color:#fff;padding:13px 5vw;display:flex;justify-content:space-between;gap:16px;align-items:center;font-size:.88rem}footer a{color:#fff;text-decoration:none;font-weight:700}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){header{padding:10px 14px;align-items:flex-start;flex-direction:column}.brand img{width:54px;height:54px}.brand-name{font-size:1.9rem}nav{width:100%;overflow-x:auto}.grid{grid-template-columns:1fr}main{width:calc(100% - 24px);margin:20px auto 30px}.intro h1{font-size:1.7rem}footer{flex-direction:column;text-align:center;padding:16px 14px}}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="index.html" aria-label="Lou Còdi — Accueil"><img src="assets/logo-rond-lou-codi.png" alt=""><span class="brand-copy"><span class="brand-name">Lou Còdi</span><span class="brand-subtitle">Club de programmation<span class="brand-region">OCCITANIE · CÔTE D’AZUR</span></span></span></a>
+  <nav aria-label="Navigation principale"><a href="index.html">Accueil</a><a href="projets.html">Projets</a><a href="pages.html" aria-current="page">Pages</a></nav>
+</header>
+<main>
+  <section class="intro"><h1>Pages</h1><p>Guides, carnets et contenus indépendants publiés par Lou Còdi.</p></section>
+  <section class="grid" id="publishedPages" aria-live="polite"><p class="empty">Chargement des pages…</p></section>
+</main>
+<footer><span><strong>Lou Còdi</strong> · Projet indépendant</span><a href="index.html">← Retour à l’accueil</a></footer>
+<script>
+const root=document.getElementById('publishedPages');
+const create=(tag,className,value)=>{const node=document.createElement(tag);if(className)node.className=className;if(value)node.textContent=value;return node};
+fetch('assets/pages/index.json',{cache:'no-store'})
+  .then(response=>{if(!response.ok)throw new Error('Index indisponible');return response.json()})
+  .then(data=>{
+    const pages=Array.isArray(data&&data.pages)?data.pages.filter(page=>page&&page.published!==false&&page.slug&&page.title):[];
+    root.replaceChildren();
+    if(!pages.length){root.append(create('p','empty','Aucune page n’est publiée pour le moment.'));return}
+    pages.forEach(page=>{
+      const article=create('article','card');const visual=create('div','visual','📄');visual.setAttribute('aria-hidden','true');
+      const content=create('div','content');const title=create('h2','',page.title);const description=create('p','','Page indépendante publiée sur Lou Còdi.');
+      const link=create('a','','Ouvrir la page');link.href='page.html?page='+encodeURIComponent(page.slug);
+      content.append(title,description,link);article.append(visual,content);root.append(article);
+    });
+  })
+  .catch(()=>{root.replaceChildren(create('p','error','La liste des pages est momentanément indisponible.'))});
+</script>
+</body>
+</html>
