@@ -1,3 +1,9 @@
 {
-  "pages": []
+  "pages": [
+    {
+      "slug": "test",
+      "title": "Test",
+      "updatedAt": "2026-10-21T17:11:31.797Z"
+    }
+  ]
 }
