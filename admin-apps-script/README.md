@@ -11,8 +11,10 @@ La publication des réglages de la page d’accueil nécessite en plus :
 - `LC_GITHUB_TOKEN`, jeton finement limité au dépôt du site avec le droit d’écrire son contenu ;
 - `LC_GITHUB_REPOSITORY`, facultatif, vaut `preventionpaca/loucamin` par défaut.
 
-La section « Licences et statistiques » lit directement les tables `Licences`,
+La vue autonome `?view=stats` lit directement les tables `Licences`,
 `Installations` et `Statistiques` du même document Grist que l’administration.
+Elle est utilisée par `stats.loucodi.fr`, tandis que `admin.loucodi.fr` conserve
+uniquement les fonctions d’administration et de publication du site.
 Leur schéma est décrit dans `schema-grist.json`. Aucune base indépendante et aucun
 mot de passe d’administration supplémentaire ne sont utilisés.
 

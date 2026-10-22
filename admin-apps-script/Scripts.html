@@ -87,10 +87,8 @@ function renderPagePreview(){
 }
 function load(){
   status('Chargement…');
-  google.script.run.withSuccessHandler(data=>{state.products=data.produits;state.canEdit=data.administrateur.peutModifier;state.pagesConfigured=data.publicationPagesConfiguree===true;state.licensesConfigured=data.licencesConfigurees===true;byId('identity').textContent=data.administrateur.nom+' — '+data.administrateur.email;byId('newProduct').hidden=!state.canEdit;byId('newPage').hidden=!state.canEdit;byId('newPage').disabled=!state.pagesConfigured;byId('publishLayout').hidden=!state.canEdit;byId('publishLayout').disabled=!data.publicationAccueilConfiguree;byId('refreshLicenses').disabled=!state.licensesConfigured;byId('publicationHelp').textContent=data.publicationAccueilConfiguree?'La publication crée une modification traçable dans le dépôt du site.':'La liaison de publication GitHub doit être configurée dans les propriétés sécurisées de l’administration.';status('');render();renderPages();loadPages();loadLicenses();}).withFailureHandler(fail).chargerAdministration();
+  google.script.run.withSuccessHandler(data=>{state.products=data.produits;state.canEdit=data.administrateur.peutModifier;state.pagesConfigured=data.publicationPagesConfiguree===true;state.licensesConfigured=data.licencesConfigurees===true;byId('identity').textContent=data.administrateur.nom+' — '+data.administrateur.email;byId('newProduct').hidden=!state.canEdit;byId('newPage').hidden=!state.canEdit;byId('newPage').disabled=!state.pagesConfigured;byId('publishLayout').hidden=!state.canEdit;byId('publishLayout').disabled=!data.publicationAccueilConfiguree;byId('publicationHelp').textContent=data.publicationAccueilConfiguree?'La publication crée une modification traçable dans le dépôt du site.':'La liaison de publication GitHub doit être configurée dans les propriétés sécurisées de l’administration.';status('');render();renderPages();loadPages();}).withFailureHandler(fail).chargerAdministration();
 }
-byId('refreshLicenses').addEventListener('click',loadLicenses);
-byId('statisticsPeriod').addEventListener('change',loadLicenses);
 byId('newProduct').addEventListener('click',()=>openEditor());
 byId('cancel').addEventListener('click',()=>{byId('editor').hidden=true;});
 byId('productForm').addEventListener('submit',event=>{

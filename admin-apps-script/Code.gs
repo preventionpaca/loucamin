@@ -1,4 +1,4 @@
-const LC_ADMIN_VERSION = '1.6.0';
+const LC_ADMIN_VERSION = '1.7.0';
 // Dans Grist, la table affichée « Administrateurs » conserve l'identifiant technique Table1.
 const LC_ADMIN_TABLE = 'Table1';
 const LC_PRODUCTS_TABLE = 'Produits';
@@ -29,10 +29,12 @@ const LC_INITIAL_PRODUCTS = [
   }
 ];
 
-function doGet() {
-  return HtmlService.createTemplateFromFile('Index')
+function doGet(event) {
+  const view = String(event && event.parameter && event.parameter.view || 'admin');
+  const stats = view === 'stats';
+  return HtmlService.createTemplateFromFile(stats ? 'Stats' : 'Index')
     .evaluate()
-    .setTitle('Administration — Lou Còdi');
+    .setTitle(stats ? 'Statistiques — Lou Còdi' : 'Administration — Lou Còdi');
 }
 
 function LC_include_(name) {
@@ -41,6 +43,11 @@ function LC_include_(name) {
 
 function LC_changerCompteUrl_() {
   const applicationUrl = ScriptApp.getService().getUrl();
+  return 'https://accounts.google.com/AccountChooser?continue=' + encodeURIComponent(applicationUrl);
+}
+
+function LC_changerCompteStatsUrl_() {
+  const applicationUrl = ScriptApp.getService().getUrl() + '?view=stats';
   return 'https://accounts.google.com/AccountChooser?continue=' + encodeURIComponent(applicationUrl);
 }
 
@@ -334,6 +341,7 @@ function LC_resumeStatistiques_(period) {
     active_installations: installations.filter(function(record) {
       return String((record.fields || {}).Statut || '') === 'active';
     }).length,
+    installations: installations.length,
     events: events.length,
     periods: {
       day: LC_compterDepuis_(allEvents, new Date(now.getTime() - 86400000)),

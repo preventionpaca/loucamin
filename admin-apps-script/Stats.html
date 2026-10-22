@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Statistiques — Lou Còdi</title>
+  <?!= LC_include_('Styles'); ?>
+  <style>
+    main.statsMain{display:block;max-width:1500px;margin:auto}.statsPanel{min-height:70vh}.statsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin:22px 0}.statsCard{border:1px solid #cfdeea;border-radius:12px;padding:17px;background:#f8fbfd}.statsCard strong{display:block;color:#d71920;font-size:2rem}.statsCard span{color:#52677c}.statsColumns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.statsList{display:grid;gap:7px}.statsList>div{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid #dbe5ed;padding:10px 4px}.statsList strong{color:#0a4b87}.statsSection{margin-top:28px}.statsSection h2{margin-bottom:8px}.statsIntro{color:#52677c}.statsStatus{min-height:1.5em;color:#a34500;font-weight:700}.statsToolbar{display:flex;align-items:end;justify-content:space-between;gap:15px;flex-wrap:wrap}.statsToolbar label{margin:0}.statsToolbar select{padding:9px;border:1px solid #aabccb;border-radius:7px;background:#fff}.adminLink{color:#fff;font-weight:700}.licenseTable{min-width:680px}@media(max-width:800px){.statsColumns{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <div><h1>Statistiques Lou Còdi</h1><p id="identity">Connexion Google en cours…</p></div>
+    <div><a class="adminLink" href="<?= ScriptApp.getService().getUrl(); ?>">Administration du site</a> · <a class="accountButton" href="<?!= LC_changerCompteStatsUrl_(); ?>" target="_top">Changer de compte Google</a></div>
+  </header>
+  <main class="statsMain">
+    <section class="panel statsPanel">
+      <div class="statsToolbar">
+        <div><h2>Licences, installations et usages</h2><p class="statsIntro">Aucun document ni contenu traité n’est collecté. Les résultats regroupent uniquement les événements consentis par les logiciels.</p></div>
+        <label>Période
+          <select id="period"><option value="day">24 heures</option><option value="week" selected>7 jours</option><option value="month">31 jours</option></select>
+        </label>
+        <button id="refresh" type="button">Actualiser</button>
+      </div>
+      <p id="status" class="statsStatus" role="status" aria-live="polite"></p>
+      <div id="metrics" class="statsGrid"></div>
+      <div class="statsColumns">
+        <section><h2>Logiciels et modules utilisés</h2><div id="modules" class="statsList"></div></section>
+        <section><h2>Actions mesurées</h2><div id="actions" class="statsList"></div></section>
+        <section><h2>Versions utilisées</h2><div id="versions" class="statsList"></div></section>
+        <section><h2>Activité quotidienne</h2><div id="timeline" class="statsList"></div></section>
+      </div>
+      <section class="statsSection"><h2>Licences récentes</h2><div class="licenseTableWrap"><table class="licenseTable"><thead><tr><th>Clé</th><th>Adresse</th><th>Statut</th><th>Création</th></tr></thead><tbody id="licenses"></tbody></table></div></section>
+    </section>
+  </main>
+  <script>
+  const moduleLabels={workshop:'Lou Còdi Workshop',pdf_studio:'PDF Studio',document_studio:'Document Studio',cutting_optimization:'Optimisation de découpe',documents_to_pdf:'Documents vers PDF',organize_pdf:'Organisation PDF',decorate_pdf:'Habillage PDF',pdf_to_office:'PDF vers Office',website:'Site Lou Còdi'};
+  const actionLabels={open:'Ouvertures',convert:'Conversions',download:'Téléchargements mesurés'};
+  const byId=id=>document.getElementById(id);
+  function list(rootId,values,labels,includeZeros=false){const root=byId(rootId);root.replaceChildren();const keys=includeZeros?Object.keys(labels):Object.keys(values||{});keys.sort((a,b)=>(values&&values[b]||0)-(values&&values[a]||0));keys.forEach(key=>{const row=document.createElement('div');const label=document.createElement('span');label.textContent=labels&&labels[key]||key;const count=document.createElement('strong');count.textContent=String(values&&values[key]||0);row.append(label,count);root.append(row)});if(!root.children.length){const empty=document.createElement('p');empty.textContent='Aucune donnée sur cette période.';empty.className='emptyNotice';root.append(empty)}}
+  function render(data){const metrics=byId('metrics');metrics.replaceChildren();[['Licences gratuites',data.licenses],['Installations enregistrées',data.installations],['Postes actifs',data.active_installations],['Événements',data.events],['Ouvertures',data.actions&&data.actions.open],['Conversions',data.conversions],['Téléchargements mesurés',data.downloads]].forEach(item=>{const card=document.createElement('article');card.className='statsCard';const value=document.createElement('strong');value.textContent=String(item[1]||0);const label=document.createElement('span');label.textContent=item[0];card.append(value,label);metrics.append(card)});list('modules',data.modules,moduleLabels,true);list('actions',data.actions,actionLabels,true);list('versions',data.versions);const timeline={};(data.timeline||[]).forEach(item=>timeline[item.day]=item.count);list('timeline',timeline);const licenses=byId('licenses');licenses.replaceChildren();(data.recent_licenses||[]).forEach(item=>{const row=document.createElement('tr');[item.key,item.email,item.status,item.created].forEach(value=>{const cell=document.createElement('td');cell.textContent=String(value||'');row.append(cell)});licenses.append(row)})}
+  function load(){byId('status').textContent='Chargement…';byId('refresh').disabled=true;google.script.run.withSuccessHandler(data=>{byId('refresh').disabled=false;byId('status').textContent='';render(data)}).withFailureHandler(error=>{byId('refresh').disabled=false;byId('identity').textContent='Connexion Google refusée';byId('status').textContent=error&&error.message?error.message:String(error)}).chargerLicencesEtStatistiques(byId('period').value)}
+  byId('refresh').addEventListener('click',load);byId('period').addEventListener('change',load);google.script.run.withSuccessHandler(data=>{byId('identity').textContent=data.administrateur.nom+' — '+data.administrateur.email;load()}).withFailureHandler(error=>{byId('identity').textContent='Connexion Google refusée';byId('status').textContent=error&&error.message?error.message:String(error)}).chargerAdministration();
+  </script>
+</body>
+</html>
