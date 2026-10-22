@@ -1,7 +1,10 @@
-const LC_ADMIN_VERSION = '1.5.0';
+const LC_ADMIN_VERSION = '1.6.0';
 // Dans Grist, la table affichée « Administrateurs » conserve l'identifiant technique Table1.
 const LC_ADMIN_TABLE = 'Table1';
 const LC_PRODUCTS_TABLE = 'Produits';
+const LC_LICENSES_TABLE = 'Licences';
+const LC_INSTALLATIONS_TABLE = 'Installations';
+const LC_STATS_TABLE = 'Statistiques';
 const LC_INITIAL_PRODUCTS = [
   {
     Slug: 'guide-prevention-risques',
@@ -216,55 +219,161 @@ function chargerAdministration() {
     produits: produits,
     publicationAccueilConfiguree: Boolean(String(PropertiesService.getScriptProperties().getProperty('LC_GITHUB_TOKEN') || '').trim()),
     publicationPagesConfiguree: Boolean(String(PropertiesService.getScriptProperties().getProperty('LC_GITHUB_TOKEN') || '').trim()),
-    licencesConfigurees: LC_licencesConfigurees_()
+    licencesConfigurees: LC_statistiquesConfigurees_()
   };
 }
 
-function LC_licencesConfigurees_() {
-  const properties = PropertiesService.getScriptProperties();
-  return Boolean(
-    String(properties.getProperty('LC_LICENSE_SERVICE_URL') || '').trim() &&
-    String(properties.getProperty('LC_LICENSE_ADMIN_KEY') || '').trim()
-  );
+function LC_statistiquesConfigurees_() {
+  try {
+    LC_grist_('get', '/tables/' + LC_STATS_TABLE + '/records?limit=1');
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
-function LC_appelerServiceLicences_(action, values) {
-  const properties = PropertiesService.getScriptProperties();
-  const url = String(properties.getProperty('LC_LICENSE_SERVICE_URL') || '').trim();
-  const key = String(properties.getProperty('LC_LICENSE_ADMIN_KEY') || '').trim();
-  if (!url || !key) throw new Error('Le service de licences n’est pas encore relié à cette administration.');
-  if (!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url)) {
-    throw new Error('L’adresse du service de licences est invalide.');
-  }
-  const payload = Object.assign({}, values || {}, {action: action, admin_api_key: key});
-  const response = UrlFetchApp.fetch(url, {
-    method: 'post',
-    contentType: 'application/json',
-    payload: JSON.stringify(payload),
-    muteHttpExceptions: true,
-    followRedirects: true
+/** À exécuter explicitement une seule fois depuis l'éditeur Apps Script. */
+function installerTablesLicencesEtStatistiques() {
+  const admin = LC_contexteAdministrateur_();
+  if (!admin.peutModifier) throw new Error('Seul un administrateur peut préparer les tables.');
+  const existing = LC_grist_('get', '/tables').tables || [];
+  const ids = existing.map(function(table) { return String(table.id || ''); });
+  const definitions = [
+    {id: LC_LICENSES_TABLE, columns: [
+      {id:'Cle', fields:{type:'Text'}}, {id:'Email', fields:{type:'Text'}},
+      {id:'Statut', fields:{type:'Choice', widgetOptions:'{"choices":["active","disabled"]}'}},
+      {id:'Cree_le', fields:{type:'DateTime:Europe/Paris'}}, {id:'Modifie_le', fields:{type:'DateTime:Europe/Paris'}}
+    ]},
+    {id: LC_INSTALLATIONS_TABLE, columns: [
+      {id:'Cle', fields:{type:'Text'}}, {id:'Installation', fields:{type:'Text'}},
+      {id:'Systeme', fields:{type:'Text'}}, {id:'Version', fields:{type:'Text'}},
+      {id:'Statut', fields:{type:'Choice', widgetOptions:'{"choices":["active","inactive"]}'}},
+      {id:'Activee_le', fields:{type:'DateTime:Europe/Paris'}}, {id:'Derniere_activite', fields:{type:'DateTime:Europe/Paris'}}
+    ]},
+    {id: LC_STATS_TABLE, columns: [
+      {id:'Recu_le', fields:{type:'DateTime:Europe/Paris'}}, {id:'Heure_evenement', fields:{type:'Text'}},
+      {id:'Version', fields:{type:'Text'}}, {id:'Systeme', fields:{type:'Text'}},
+      {id:'Module', fields:{type:'Text'}}, {id:'Action', fields:{type:'Text'}},
+      {id:'Resultat', fields:{type:'Text'}}, {id:'Dimensions', fields:{type:'Text'}}
+    ]}
+  ];
+  const created = [];
+  definitions.forEach(function(definition) {
+    if (ids.indexOf(definition.id) === -1) {
+      LC_grist_('post', '/tables', {tables: [definition]});
+      created.push(definition.id);
+    }
   });
-  if (response.getResponseCode() < 200 || response.getResponseCode() >= 300) {
-    throw new Error('Le service de licences est indisponible (' + response.getResponseCode() + ').');
-  }
-  const result = JSON.parse(response.getContentText() || '{}');
-  if (!result.ok) throw new Error(String(result.error || 'Requête de licence refusée.'));
-  return result;
+  return {ok: true, created: created, existing: definitions.map(function(item) { return item.id; }).filter(function(id) { return created.indexOf(id) === -1; })};
 }
 
-function chargerLicencesEtStatistiques() {
+function LC_dateStatistique_(value) {
+  if (value instanceof Date) return value;
+  if (typeof value === 'number') return new Date(value > 100000000000 ? value : value * 1000);
+  const parsed = new Date(String(value || ''));
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function LC_vueLicence_(record) {
+  const fields = record.fields || {};
+  const key = String(fields.Cle || '');
+  return {
+    key: key ? key.slice(0, 6) + '••••••' + key.slice(-4) : '',
+    email: String(fields.Email || ''),
+    status: String(fields.Statut || ''),
+    created: String(fields.Cree_le || '')
+  };
+}
+
+function LC_periodeStatistiques_(period) {
+  const allowed = {day: 1, week: 7, month: 31};
+  const clean = Object.prototype.hasOwnProperty.call(allowed, period) ? period : 'week';
+  const end = new Date();
+  const start = new Date(end.getTime() - allowed[clean] * 86400000);
+  return {id: clean, start: start, end: end};
+}
+
+function LC_compterDepuis_(records, start) {
+  return records.filter(function(record) {
+    const date = LC_dateStatistique_((record.fields || {}).Recu_le);
+    return date && date >= start;
+  }).length;
+}
+
+function LC_resumeStatistiques_(period) {
+  const range = LC_periodeStatistiques_(period);
+  const licenses = (LC_grist_('get', '/tables/' + LC_LICENSES_TABLE + '/records').records || []);
+  const installations = (LC_grist_('get', '/tables/' + LC_INSTALLATIONS_TABLE + '/records').records || []);
+  const allEvents = (LC_grist_('get', '/tables/' + LC_STATS_TABLE + '/records').records || []);
+  const events = allEvents.filter(function(record) {
+    const date = LC_dateStatistique_((record.fields || {}).Recu_le);
+    return date && date >= range.start && date <= range.end;
+  });
+  const modules = {};
+  const versions = {};
+  const actions = {};
+  const timeline = {};
+  events.forEach(function(record) {
+    const fields = record.fields || {};
+    const moduleName = String(fields.Module || 'inconnu');
+    const version = String(fields.Version || 'inconnue');
+    const action = String(fields.Action || 'inconnue');
+    const date = LC_dateStatistique_(fields.Recu_le);
+    modules[moduleName] = (modules[moduleName] || 0) + 1;
+    versions[version] = (versions[version] || 0) + 1;
+    actions[action] = (actions[action] || 0) + 1;
+    if (date) {
+      const key = Utilities.formatDate(date, 'Europe/Paris', 'yyyy-MM-dd');
+      timeline[key] = (timeline[key] || 0) + 1;
+    }
+  });
+  const now = new Date();
+  return {
+    period: range.id,
+    licenses: licenses.length,
+    active_installations: installations.filter(function(record) {
+      return String((record.fields || {}).Statut || '') === 'active';
+    }).length,
+    events: events.length,
+    periods: {
+      day: LC_compterDepuis_(allEvents, new Date(now.getTime() - 86400000)),
+      week: LC_compterDepuis_(allEvents, new Date(now.getTime() - 7 * 86400000)),
+      month: LC_compterDepuis_(allEvents, new Date(now.getTime() - 31 * 86400000))
+    },
+    conversions: events.filter(function(record) {
+      return String((record.fields || {}).Action || '') === 'convert';
+    }).length,
+    downloads: events.filter(function(record) {
+      return String((record.fields || {}).Action || '') === 'download';
+    }).length,
+    modules: modules,
+    versions: versions,
+    actions: actions,
+    timeline: Object.keys(timeline).sort().map(function(day) { return {day: day, count: timeline[day]}; }),
+    recent_licenses: licenses.slice(-25).reverse().map(LC_vueLicence_)
+  };
+}
+
+function chargerLicencesEtStatistiques(period) {
   LC_contexteAdministrateur_();
-  return LC_appelerServiceLicences_('admin_snapshot');
+  return LC_resumeStatistiques_(period);
 }
 
 function changerStatutLicence(payload) {
   const admin = LC_contexteAdministrateur_();
   if (!admin.peutModifier) throw new Error('Ce compte dispose uniquement d’un accès en lecture.');
   payload = payload || {};
-  return LC_appelerServiceLicences_('admin_license_status', {
-    license_key: LC_nettoyer_(payload.licenseKey, 40),
-    status: payload.status === 'disabled' ? 'disabled' : 'active'
+  const licenseKey = LC_nettoyer_(payload.licenseKey, 40);
+  const status = payload.status === 'disabled' ? 'disabled' : 'active';
+  const result = LC_grist_('get', '/tables/' + LC_LICENSES_TABLE + '/records');
+  const record = (result.records || []).find(function(item) {
+    return String((item.fields || {}).Cle || '') === licenseKey;
   });
+  if (!record) throw new Error('Licence inconnue.');
+  LC_grist_('patch', '/tables/' + LC_LICENSES_TABLE + '/records', {
+    records: [{id: Number(record.id), fields: {Statut: status, Modifie_le: Math.floor(Date.now() / 1000)}}]
+  });
+  return {ok: true};
 }
 
 function LC_github_(method, path, body) {

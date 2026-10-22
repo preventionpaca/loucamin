@@ -30,6 +30,41 @@
         {"id":"Cree_le","fields":{"type":"DateTime:Europe/Paris","isFormula":false}},
         {"id":"Modifie_le","fields":{"type":"DateTime:Europe/Paris","isFormula":false}}
       ]
+    },
+    {
+      "id": "Licences",
+      "columns": [
+        {"id":"Cle","fields":{"type":"Text","isFormula":false}},
+        {"id":"Email","fields":{"type":"Text","isFormula":false}},
+        {"id":"Statut","fields":{"type":"Choice","isFormula":false,"widgetOptions":"{\"choices\":[\"active\",\"disabled\"]}"}},
+        {"id":"Cree_le","fields":{"type":"DateTime:Europe/Paris","isFormula":false}},
+        {"id":"Modifie_le","fields":{"type":"DateTime:Europe/Paris","isFormula":false}}
+      ]
+    },
+    {
+      "id": "Installations",
+      "columns": [
+        {"id":"Cle","fields":{"type":"Text","isFormula":false}},
+        {"id":"Installation","fields":{"type":"Text","isFormula":false}},
+        {"id":"Systeme","fields":{"type":"Text","isFormula":false}},
+        {"id":"Version","fields":{"type":"Text","isFormula":false}},
+        {"id":"Statut","fields":{"type":"Choice","isFormula":false,"widgetOptions":"{\"choices\":[\"active\",\"inactive\"]}"}},
+        {"id":"Activee_le","fields":{"type":"DateTime:Europe/Paris","isFormula":false}},
+        {"id":"Derniere_activite","fields":{"type":"DateTime:Europe/Paris","isFormula":false}}
+      ]
+    },
+    {
+      "id": "Statistiques",
+      "columns": [
+        {"id":"Recu_le","fields":{"type":"DateTime:Europe/Paris","isFormula":false}},
+        {"id":"Heure_evenement","fields":{"type":"Text","isFormula":false}},
+        {"id":"Version","fields":{"type":"Text","isFormula":false}},
+        {"id":"Systeme","fields":{"type":"Text","isFormula":false}},
+        {"id":"Module","fields":{"type":"Text","isFormula":false}},
+        {"id":"Action","fields":{"type":"Text","isFormula":false}},
+        {"id":"Resultat","fields":{"type":"Text","isFormula":false}},
+        {"id":"Dimensions","fields":{"type":"Text","isFormula":false}}
+      ]
     }
   ]
 }
