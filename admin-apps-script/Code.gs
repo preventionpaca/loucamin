@@ -1,4 +1,4 @@
-const LC_ADMIN_VERSION = '1.4.1';
+const LC_ADMIN_VERSION = '1.5.0';
 // Dans Grist, la table affichée « Administrateurs » conserve l'identifiant technique Table1.
 const LC_ADMIN_TABLE = 'Table1';
 const LC_PRODUCTS_TABLE = 'Produits';
@@ -215,8 +215,56 @@ function chargerAdministration() {
     administrateur: admin,
     produits: produits,
     publicationAccueilConfiguree: Boolean(String(PropertiesService.getScriptProperties().getProperty('LC_GITHUB_TOKEN') || '').trim()),
-    publicationPagesConfiguree: Boolean(String(PropertiesService.getScriptProperties().getProperty('LC_GITHUB_TOKEN') || '').trim())
+    publicationPagesConfiguree: Boolean(String(PropertiesService.getScriptProperties().getProperty('LC_GITHUB_TOKEN') || '').trim()),
+    licencesConfigurees: LC_licencesConfigurees_()
   };
+}
+
+function LC_licencesConfigurees_() {
+  const properties = PropertiesService.getScriptProperties();
+  return Boolean(
+    String(properties.getProperty('LC_LICENSE_SERVICE_URL') || '').trim() &&
+    String(properties.getProperty('LC_LICENSE_ADMIN_KEY') || '').trim()
+  );
+}
+
+function LC_appelerServiceLicences_(action, values) {
+  const properties = PropertiesService.getScriptProperties();
+  const url = String(properties.getProperty('LC_LICENSE_SERVICE_URL') || '').trim();
+  const key = String(properties.getProperty('LC_LICENSE_ADMIN_KEY') || '').trim();
+  if (!url || !key) throw new Error('Le service de licences n’est pas encore relié à cette administration.');
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url)) {
+    throw new Error('L’adresse du service de licences est invalide.');
+  }
+  const payload = Object.assign({}, values || {}, {action: action, admin_api_key: key});
+  const response = UrlFetchApp.fetch(url, {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true,
+    followRedirects: true
+  });
+  if (response.getResponseCode() < 200 || response.getResponseCode() >= 300) {
+    throw new Error('Le service de licences est indisponible (' + response.getResponseCode() + ').');
+  }
+  const result = JSON.parse(response.getContentText() || '{}');
+  if (!result.ok) throw new Error(String(result.error || 'Requête de licence refusée.'));
+  return result;
+}
+
+function chargerLicencesEtStatistiques() {
+  LC_contexteAdministrateur_();
+  return LC_appelerServiceLicences_('admin_snapshot');
+}
+
+function changerStatutLicence(payload) {
+  const admin = LC_contexteAdministrateur_();
+  if (!admin.peutModifier) throw new Error('Ce compte dispose uniquement d’un accès en lecture.');
+  payload = payload || {};
+  return LC_appelerServiceLicences_('admin_license_status', {
+    license_key: LC_nettoyer_(payload.licenseKey, 40),
+    status: payload.status === 'disabled' ? 'disabled' : 'active'
+  });
 }
 
 function LC_github_(method, path, body) {

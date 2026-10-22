@@ -49,6 +49,18 @@
       <p class="publicationStatus" id="publicationStatus" role="status" aria-live="polite"></p>
       <p class="publicationHelp" id="publicationHelp"></p>
     </section>
+    <section class="panel licensePanel" id="licensePanel">
+      <div class="sectionHeading">
+        <div><h2>Licences et statistiques</h2><p>Suivez les licences gratuites, les postes activés et l’utilisation consentie des modules.</p></div>
+        <button id="refreshLicenses" type="button">Actualiser</button>
+      </div>
+      <p id="licenseStatus" class="publicationStatus" role="status" aria-live="polite"></p>
+      <div id="licenseMetrics" class="licenseMetrics"></div>
+      <h3>Licences récentes</h3>
+      <div class="licenseTableWrap"><table class="licenseTable"><thead><tr><th>Clé</th><th>Adresse</th><th>Statut</th><th>Création</th></tr></thead><tbody id="licenseRows"></tbody></table></div>
+      <h3>Modules utilisés</h3>
+      <div id="moduleStats" class="moduleStats"></div>
+    </section>
     <section class="panel pageBuilderPanel" id="pageBuilderPanel">
       <div class="sectionHeading">
         <div><h2>Pages du site</h2><p>Composez une page avec des blocs structurés. Sur téléphone, ils s’empilent automatiquement.</p></div>

@@ -11,6 +11,15 @@ La publication des réglages de la page d’accueil nécessite en plus :
 - `LC_GITHUB_TOKEN`, jeton finement limité au dépôt du site avec le droit d’écrire son contenu ;
 - `LC_GITHUB_REPOSITORY`, facultatif, vaut `preventionpaca/loucamin` par défaut.
 
+La section « Licences et statistiques » nécessite :
+
+- `LC_LICENSE_SERVICE_URL`, URL `/exec` du Web App public de licences ;
+- `LC_LICENSE_ADMIN_KEY`, même valeur secrète que `ADMIN_API_KEY` dans le service
+  de licences.
+
+Le navigateur ne reçoit jamais cette clé. L’administration appelle le service côté
+serveur après avoir vérifié le compte Google dans la table Grist `Administrateurs`.
+
 Le jeton reste exclusivement dans les propriétés sécurisées Apps Script. L’interface ne reçoit que l’état configuré ou non configuré. Chaque publication met à jour `assets/accueil-layouts.json` sur la branche `main`, ce qui déclenche le déploiement GitHub Pages sans modifier directement les photographies originales.
 
 ## Créateur de pages

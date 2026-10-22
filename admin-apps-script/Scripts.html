@@ -1,5 +1,5 @@
 <script>
-const state={products:[],pages:[],pageBlocks:[],canEdit:false,pagesConfigured:false};
+const state={products:[],pages:[],pageBlocks:[],canEdit:false,pagesConfigured:false,licensesConfigured:false};
 const byId=id=>document.getElementById(id);
 function status(message){byId('status').textContent=message||'';}
 function fail(error){
@@ -17,6 +17,16 @@ function render(){
     if(state.canEdit){const button=document.createElement('button');button.type='button';button.className='editButton';button.textContent='Modifier';button.addEventListener('click',()=>openEditor(product));card.append(button);}
     root.append(card);
   });
+}
+function licenseMessage(message,error=false){const node=byId('licenseStatus');node.textContent=message||'';node.classList.toggle('error',error);}
+function renderLicenses(data){
+  const metrics=byId('licenseMetrics');metrics.replaceChildren();[['Licences',data.licenses],['Postes actifs',data.active_installations],['Événements',data.events]].forEach(item=>{const card=document.createElement('article');card.className='licenseMetric';const value=document.createElement('strong');value.textContent=String(item[1]||0);const label=document.createElement('span');label.textContent=item[0];card.append(value,label);metrics.append(card)});
+  const rows=byId('licenseRows');rows.replaceChildren();(data.recent_licenses||[]).forEach(license=>{const row=document.createElement('tr');[license.key,license.email,license.status,license.created].forEach(value=>{const cell=document.createElement('td');cell.textContent=String(value||'');row.append(cell)});rows.append(row)});
+  const modules=byId('moduleStats');modules.replaceChildren();Object.entries(data.modules||{}).sort((a,b)=>b[1]-a[1]).forEach(item=>{const line=document.createElement('div');const name=document.createElement('span');name.textContent=item[0];const count=document.createElement('strong');count.textContent=String(item[1]);line.append(name,count);modules.append(line)});if(!modules.children.length){const empty=document.createElement('p');empty.className='emptyNotice';empty.textContent='Aucune statistique consentie reçue pour le moment.';modules.append(empty)};
+}
+function loadLicenses(){
+  if(!state.licensesConfigured){licenseMessage('Le service de licences doit être relié dans les propriétés sécurisées de l’administration.',true);return;}
+  licenseMessage('Chargement…');byId('refreshLicenses').disabled=true;google.script.run.withSuccessHandler(data=>{byId('refreshLicenses').disabled=false;licenseMessage('');renderLicenses(data)}).withFailureHandler(error=>{byId('refreshLicenses').disabled=false;licenseMessage(error&&error.message?error.message:String(error),true)}).chargerLicencesEtStatistiques();
 }
 function openEditor(product={}){
   const form=byId('productForm');form.reset();
@@ -75,8 +85,9 @@ function renderPagePreview(){
 }
 function load(){
   status('Chargement…');
-  google.script.run.withSuccessHandler(data=>{state.products=data.produits;state.canEdit=data.administrateur.peutModifier;state.pagesConfigured=data.publicationPagesConfiguree===true;byId('identity').textContent=data.administrateur.nom+' — '+data.administrateur.email;byId('newProduct').hidden=!state.canEdit;byId('newPage').hidden=!state.canEdit;byId('newPage').disabled=!state.pagesConfigured;byId('publishLayout').hidden=!state.canEdit;byId('publishLayout').disabled=!data.publicationAccueilConfiguree;byId('publicationHelp').textContent=data.publicationAccueilConfiguree?'La publication crée une modification traçable dans le dépôt du site.':'La liaison de publication GitHub doit être configurée dans les propriétés sécurisées de l’administration.';status('');render();renderPages();loadPages();}).withFailureHandler(fail).chargerAdministration();
+  google.script.run.withSuccessHandler(data=>{state.products=data.produits;state.canEdit=data.administrateur.peutModifier;state.pagesConfigured=data.publicationPagesConfiguree===true;state.licensesConfigured=data.licencesConfigurees===true;byId('identity').textContent=data.administrateur.nom+' — '+data.administrateur.email;byId('newProduct').hidden=!state.canEdit;byId('newPage').hidden=!state.canEdit;byId('newPage').disabled=!state.pagesConfigured;byId('publishLayout').hidden=!state.canEdit;byId('publishLayout').disabled=!data.publicationAccueilConfiguree;byId('refreshLicenses').disabled=!state.licensesConfigured;byId('publicationHelp').textContent=data.publicationAccueilConfiguree?'La publication crée une modification traçable dans le dépôt du site.':'La liaison de publication GitHub doit être configurée dans les propriétés sécurisées de l’administration.';status('');render();renderPages();loadPages();loadLicenses();}).withFailureHandler(fail).chargerAdministration();
 }
+byId('refreshLicenses').addEventListener('click',loadLicenses);
 byId('newProduct').addEventListener('click',()=>openEditor());
 byId('cancel').addEventListener('click',()=>{byId('editor').hidden=true;});
 byId('productForm').addEventListener('submit',event=>{
