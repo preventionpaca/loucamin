@@ -700,6 +700,7 @@ textarea{min-height:125px;resize:vertical}
     <nav class="actions" aria-label="Navigation principale">
       <a class="action" href="projets.html">▣ Projets</a>
       <a class="action" href="pages.html">▤ Pages</a>
+      <a class="action" href="mode-emploi.html">? Mode d’emploi</a>
       <button class="action" id="openContact" type="button">✉ Contact</button>
     </nav>
   </footer>
@@ -992,11 +993,20 @@ function refreshCaptcha() {
   document.getElementById('formStartedAt').value = Date.now();
 }
 
-document.getElementById('openContact').addEventListener('click', () => { refreshCaptcha(); modal.classList.add('open'); });
+function openContactModal() {
+  refreshCaptcha();
+  modal.classList.add('open');
+}
+
+document.getElementById('openContact').addEventListener('click', openContactModal);
 document.getElementById('closeContact').addEventListener('click', () => modal.classList.remove('open'));
 modal.addEventListener('click', event => { if (event.target === modal) modal.classList.remove('open'); });
 document.addEventListener('keydown', event => { if (event.key === 'Escape') modal.classList.remove('open'); });
 refreshCaptcha();
+if (window.location.hash === '#contact') openContactModal();
+window.addEventListener('hashchange', () => {
+  if (window.location.hash === '#contact') openContactModal();
+});
 
 form.addEventListener('submit', event => {
   const expected = Number(document.getElementById('captchaA').value) + Number(document.getElementById('captchaB').value);

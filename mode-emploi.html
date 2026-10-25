@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Modes d’emploi — Lou Còdi Workshop</title>
+  <meta name="description" content="Les modes d’emploi de Lou Còdi Workshop et de ses studios.">
+  <style>
+    :root { --navy:#193b66; --blue:#2368af; --pale:#f0f4f9; --ink:#23384d; --gold:#f4b942; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); background:var(--pale); }
+    header { background:var(--navy); color:white; padding:28px clamp(20px,5vw,72px); display:flex; align-items:center; justify-content:space-between; gap:24px; }
+    .brand { display:flex; align-items:center; gap:16px; }
+    .brand img { width:62px; height:62px; object-fit:contain; }
+    h1 { margin:0; font-size:clamp(1.7rem,4vw,2.7rem); }
+    header p { margin:.35rem 0 0; color:#cbdff5; }
+    header a, .top-actions a { color:white; text-decoration:none; border:1px solid #8eb7df; border-radius:8px; padding:10px 14px; white-space:nowrap; }
+    main { max-width:1180px; margin:0 auto; padding:42px 22px 64px; }
+    .intro { max-width:800px; margin-bottom:30px; font-size:1.08rem; line-height:1.65; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; }
+    article { background:white; border-radius:14px; padding:24px; box-shadow:0 8px 24px rgba(25,59,102,.09); border-top:5px solid var(--blue); scroll-margin-top:24px; }
+    article.primary { border-top-color:var(--gold); }
+    h2 { margin:0 0 10px; color:var(--navy); font-size:1.35rem; }
+    article p { min-height:72px; line-height:1.55; }
+    .download { display:inline-flex; align-items:center; gap:8px; background:var(--blue); color:white; text-decoration:none; font-weight:700; border-radius:8px; padding:11px 15px; }
+    .download:hover { background:var(--navy); }
+    .help { margin-top:34px; background:var(--navy); color:white; border-radius:14px; padding:24px; display:flex; justify-content:space-between; align-items:center; gap:20px; }
+    .help h2 { color:white; }
+    .help p { margin:4px 0 0; color:#cbdff5; }
+    .help a { background:var(--gold); color:#402c00; text-decoration:none; font-weight:800; border-radius:8px; padding:12px 18px; white-space:nowrap; }
+    footer { text-align:center; padding:26px; color:#60758a; }
+    @media (max-width:650px) { header,.help { align-items:flex-start; flex-direction:column; } article p { min-height:0; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img src="assets/logo-rond-lou-codi.png" alt="">
+      <div><h1>Modes d’emploi</h1><p>Lou Còdi Workshop et ses studios</p></div>
+    </div>
+    <a href="index.html">Retour à loucodi.fr</a>
+  </header>
+  <main>
+    <p class="intro">Retrouvez ici le principe général du Workshop et un guide PDF indépendant pour chaque studio. Les boutons <strong>Aide</strong> intégrés au Workshop ouvrent directement la rubrique correspondante.</p>
+    <section class="grid" aria-label="Guides disponibles">
+      <article class="primary" id="workshop"><h2>Lou Còdi Workshop</h2><p>Comprendre le fonctionnement général, les modules, la confidentialité et le parcours conseillé.</p><a class="download" href="assets/guides/guide-lou-codi-workshop.pdf">↓ Télécharger le guide PDF</a></article>
+      <article id="pdf-studio"><h2>PDF Studio</h2><p>Convertir, assembler, réordonner et habiller des fichiers PDF.</p><a class="download" href="assets/guides/guide-pdf-studio.pdf">↓ Télécharger le guide PDF</a></article>
+      <article id="document-studio"><h2>Document Studio</h2><p>Créer des documents, dessins, schémas et mises en page, puis exporter en PDF.</p><a class="download" href="assets/guides/guide-document-studio.pdf">↓ Télécharger le guide PDF</a></article>
+      <article id="optimisation-decoupe"><h2>Optimisation de découpe</h2><p>Préparer les stocks et les pièces, calculer les placements et limiter les chutes.</p><a class="download" href="assets/guides/guide-optimisation-decoupe.pdf">↓ Télécharger le guide PDF</a></article>
+      <article id="code-lab"><h2>Lou Còdi Code Lab</h2><p>Comprendre, essayer et modifier Python, JavaScript, HTML, CSS et JSON.</p><a class="download" href="assets/guides/guide-code-lab.pdf">↓ Télécharger le guide PDF</a></article>
+      <article id="codi-espace"><h2>Lou Còdi Espace</h2><p>Relier fichiers, Drive, courriels, pages web et albums Photos. Le guide explique aussi l’installation de l’extension Chrome.</p><a class="download" href="assets/guides/guide-codi-espace.pdf">↓ Télécharger le guide PDF</a></article>
+    </section>
+    <section class="help"><div><h2>Une question ou une difficulté ?</h2><p>Utilisez le même formulaire de contact que sur le site principal.</p></div><a href="index.html#contact">Ouvrir le formulaire de contact</a></section>
+  </main>
+  <footer>Lou Còdi · Club de programmation · Projet indépendant</footer>
+</body>
+</html>
